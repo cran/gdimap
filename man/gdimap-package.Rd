@@ -1,5 +1,5 @@
 \name{gdimap-package}
-\Rdversion{0.1-1}
+\Rdversion{0.1-3}
 \alias{gdimap-package}
 \docType{package}
 \title{
@@ -40,6 +40,8 @@ vMF - von Mises-Fisher\cr
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2012. R package version 0.1-0.

@@ -8,7 +8,7 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
   gdimethod <- match(gdi, gdimethods)
   bviews <- c("sagittal", "coronal", "axial")
   kv <- match(bview, bviews)
-	stopifnot(is.na(kv) != TRUE)
+  stopifnot(is.na(kv) != TRUE)
   ##---------
   ## generate S2 grid
   s2 <- s2tessel.zorder(depth=depth, viewgrid=FALSE)
@@ -28,23 +28,30 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
       bvec <- scantable(fbase=fbase, filename="data.bvec")
       bvec <- matrix(bvec, ncol=3)
       btable <- cbind(bval,bvec)
+      rm(bval, bvec)
     }
     else stop()
   }
-  cat("Reading data ...")
+  ##--------------------
+  gc()
+  cat("Reading data ...\n")
+  ptm <- proc.time()
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
   volimg <- img.nifti@.Data  
   mask.nifti <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   volmask <- mask.nifti@.Data  
-  ##----------------------------
-  volgfa <- array(0, dim=dim(volmask)) ## gfas map
-  V1 <- array(0, dim=c(dim(volmask), 3)) ## V1 direction
-  d <- dim(volimg)
+  print(proc.time() - ptm)
+  rm(img.nifti, mask.nifti)
+  gc()
+  ##--------------------
+  d <- dim(volmask)
+  volgfa <- array(0, dim=d)   ## gfas map
+  V1 <- array(0, dim=c(d, 3)) ## V1 direction
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
       { nslices <- d[2]}, # coronal
-      { nslices <- d[3]})  # axial
+      { nslices <- d[3]}) # axial
     first <- 1; last <- nslices
   }
   else { first <- rg[1]; last <- rg[2] }
@@ -70,11 +77,11 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
       swap=swap, bview=bview)
     ymaskdata <- premask(slicedata)
     if(ymaskdata$empty) next # empty mask
-    #-------------------
+    ##------------------
     ## odfs
     odfs <- q2odf %*% (ymaskdata$yn)
     odfs <- apply(odfs, 2, norm01) ## normalize 
-    #-------------------
+    ##------------------
     ## gfas
     gfas <- apply(odfs, 2, genfa)
     gfas <- norm01(gfas) ##??
@@ -150,6 +157,7 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
       mx[z2d] <- gfas
       volgfa[,,sl] <- mx } ) # axial
   }
+  print(proc.time() - ptm)
   cat("\n")
   ##-----------------------------
   f <- paste(savedir,"/data_gfa",sep="")

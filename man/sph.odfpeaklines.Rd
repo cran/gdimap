@@ -14,7 +14,7 @@
 sph.odfpeaklines(run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1), btoption=1,
  swap=FALSE, threshold=0.4, kdir=2,  zfactor=5, showglyph=FALSE,
  snapshot=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(),
- pngfig="odfpeak", bg="white", texturefile=NA, order=4)
+ pngfig="odfpeak", bg="white", order=4, texture=NULL, ...)
 }
 
 \arguments{
@@ -41,8 +41,9 @@ sph.odfpeaklines(run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1), btoption=1,
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}). }
 \item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfpeak"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
-\item{texturefile}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NA} - no texture). }
 \item{order}{ parameter associated with the order of the spherical harmonics approximation (default: 4). }
+\item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. } 
 }
 
 \details{
@@ -76,6 +77,8 @@ The file \file{V1list.RData} containing the first main orientation directions fo
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Tuch D. S., Q-Ball Imaging, \emph{Magnetic Resonance in Medicine} 52 (2004), 1358-1372. 

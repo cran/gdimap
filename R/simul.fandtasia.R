@@ -11,7 +11,8 @@ function(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showg
   fielddata <- sfield@.Data
   odfs <- field.gqi(gdi=gdi, g0, fielddata, b=b, lambda=NULL)
   ## with vomMF clustering
-  plotodfvmf(s2, odfs, threshold=threshold, showglyph=showglyph)
+  plotodfvmf(s2, odfs, threshold=threshold, showglyph=showglyph, 
+             savedir=savedir)
   if(snapshot) {
     sp <- paste(savedir,"/",pngfig,".png", sep="")
     Sys.sleep(2)
@@ -25,7 +26,6 @@ function(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showg
 field.gqi <-
 function(gdi="gqi", grad, fielddata, b=4000, lambda=NULL)
 {
-  cat("estimating field odfs ...\n")
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
   sz <- dim(fielddata)[4]-1
@@ -57,15 +57,17 @@ function(gdi="gqi", grad, fielddata, b=4000, lambda=NULL)
 ##----------------------
 # Overlay segments and GFA (anisotropy threshold)
 plotodfvmf <-
-function(s2, odfsdata, threshold=0.5, showglyph=FALSE) 
+function(s2, odfsdata, threshold=0.5, showglyph=FALSE, savedir=tempdir())
 {
+  normvf <- function(x) { norm(matrix(x,length(x),1),"f") }
   startctl=list(E="softmax", minalpha=6, start="s", maxiter=200) # movMF inits
   odfvertices <- s2$pc
   dm <- dim(odfsdata)
   odfs.mat <- array(odfsdata, dim=c(dm[1]*dm[2], dm[4]))
-  odfs.reg <- t(apply(odfs.mat, 1 , norm01))
-  gfas <- apply(odfs.reg, 1, genfa)
-  odfs.regarray <- array(odfs.reg, dim=dm)
+  odfs <- apply(odfs.mat, 1 , norm01)
+  # gfas <- apply(odfs, 1, genfa)
+  gfas <- apply(odfs, 2, genfa)
+  # gfas <- norm01(gfas) ## 
   nn <- 8*dm[1]*dm[2]
   v <- matrix(0, nrow=nn, ncol=3)
   ck <- numeric(nn)
@@ -73,67 +75,101 @@ function(s2, odfsdata, threshold=0.5, showglyph=FALSE)
   q <- 1
   npar1 <- 7
   npar2 <- 15
+  volmask <- matrix(1, nrow=dm[1], ncol=dm[2])
+  z2d <- which(volmask != 0, arr.ind=TRUE) 
+#  ## mask out thresholded values
+#  zx <- which(gfas <= threshold)
+#  if(length(zx)) {
+#    z2d <- z2d[-zx,]
+#    gfas <- gfas[-zx]
+#    odfs <- odfs[,-zx]
+#  }
+  volgfa <- array(0, dim=c(dim(volmask),1)) ## gfas map
+  V1 <- array(0, dim=c(dim(volmask),1, 3)) ## V1 direction
+  V2 <- array(0, dim=c(dim(volmask),1, 3)) ## V2 direction
+  lix <- dim(z2d)[1]
+  v1perslice <- matrix(0, nrow=lix,ncol=3) # v1 directions 
+  v2perslice <- matrix(0, nrow=lix,ncol=3) # v2 directions 
   tperc <- c(20, 40, 60, 80)
-  tline <- floor(c(0.2,0.4,0.6,0.8)*dm[1])
-  cat("vMF estimation for ", dm[1]*dm[2], "voxels, ...\n")
-  for(i in 1:dm[1]) {
-    tt <- which(tline == i)
+  tline <- floor(c(0.2,0.4,0.6,0.8)*lix) 
+  cat("processing", lix,"voxels \n")
+  for(m in 1:lix) {
+    tt <- which(tline == m)
     if(length(tt) != 0) {
-      cat(paste(tperc[tt],"% ", sep="")); cflush() }
-     for(j in 1:dm[2]) {
-      odf <- odfs.regarray[i,j,1,]
-      gk <- gfas[m]
-      ith <- which(odf < threshold) 
-      odf <- odf - min(odf)
-      vx <- odfvertices[-ith,]
-      n <- dim(vx)[1]
-      y1 <- movMF(vx, k=2, control=startctl) 
-      par1 <- logb(n)*npar1
-      bic1 <- 2*logLik(y1) - par1
-      y2 <- movMF(vx, k=4, control=startctl) 
-      par2 <- logb(n)*npar2
-      bic2 <- 2*logLik(y2) - par2
-      if(bic1 >= bic2) {
-        fitted <- predict(y1) }
-      else {
-        fitted <- predict(y2) }
-      np <- length(unique(fitted))
-      pcoords <- matrix(0,np,3)
-      for(ii in 1:np) {
-        ca <- which(fitted == ii)
-        va <- vx[ca,]
-        pcoords[ii,] <- colMeans(va)
+    cat(paste(tperc[tt],"% ", sep="")); cflush() }
+    odf <- odfs[,m]
+    gk <- gfas[m]
+    ith <- which(odf < threshold) 
+    ## odf <- odf - min(odf)
+    vx <- odfvertices[-ith,]
+    n <- dim(vx)[1]
+    ##
+    nc <- dim(vx)[2]
+    kc <- 1:8
+    npar <- nc*kc+kc-1
+    bic <- -1.0e+10; nf <- 0; yy <- NULL
+    for(k in seq(2,4,by=2)) {
+      y2 <- movMF::movMF(vx, k=k, control=startctl) 
+      par <- logb(n)*npar[k]
+      bic2 <- 2*logLik(y2) - par
+      if(bic2 > bic) {
+        bic <- bic2
+        nf <- k
+        yy <- y2
+      }  
+    }
+    np <- dim(yy$theta)[1]
+    ##   pcoords <- yy$theta/max(yy$theta)
+    pcoords <- yy$theta ## no scaling
+    pk <- list(np=np , pcoords=t(pcoords))
+    v1perslice[m,] <- pk$pcoords[,1]
+    if(np == 4) {
+      if(all.equal(abs(pk$pcoords[,1]), abs(pk$pcoords[,2]),
+        toler=0.01) == TRUE) 
+          v2perslice[m,] <- pk$pcoords[,3]
+      else 
+        v2perslice[m,] <- pk$pcoords[,2]
+    }
+    ## optional visualization of crossing-fiber glyphs
+    if(showglyph) {
+      if(np == 4) {
+        if(rgl.cur() == 0) open3d()
+        plotglyph(odf, odfvertices, pk, kdir=4)
+        pp <- readline(
+          "\ncontinue showing crossing-fiber glyphs ? ('n' to exit) ") 
+        if(pp == "n" ) { showglyph <- FALSE; }
+        else { rgl.clear( type = "shapes" ) }
       }
-      pk <- list(np=np , pcoords=t(pcoords))
-      ## optional visualization of crossing-fiber glyphs
-      if(showglyph) {
-        if(np == 4) {
-          if(rgl.cur() == 0) open3d()
-          plotglyph(odf, odfvertices, pk, kdir=4)
-          pp <- readline(
-            "\ncontinue showing crossing-fiber glyphs ? ('n' to exit) ") 
-          if(pp == "n" ) { showglyph <- FALSE; }
-          else { rgl.clear( type = "shapes" ) }
-        }
+    }
+    ## reorder 
+    if(np == 4) {
+      vref <- c(1,0,0)
+      c1 <- crossprod(v1perslice[m,], vref)                
+      c2 <- crossprod(v2perslice[m,], vref)                
+      if(abs(c2) > abs(c1)) {
+        tmp <- v1perslice[m,]
+        v1perslice[m,] <- v2perslice[m,]
+        v2perslice[m,] <- tmp
       }
-      ##----------------------------
-      ## 1st direction of max odf values for  odfs
-      pc <- odfvertices * as.vector(odf) 
-      pc <- pc / (2*max(pc))
-      pos <- c(i,j,0)
-      coords <- pk$pcoords
-      for(k in 1:min(pk$np, 4)) {
-        zch <- coords[,k] * gk
+    }
+    ##----------------------------
+    ## 1st direction of max odf values for  odfs
+    pc <- odfvertices * as.vector(odf) 
+    pc <- pc / (2*max(pc))
+    pos <- c(z2d[m,],0)
+    ## normalize for visualization
+    mx <- apply(yy$theta, 1, normvf)
+    coords <- t(yy$theta/mx)
+    for(k in 1:min(pk$np, 4)) {
+      zch <- coords[,k] * gk
         zch <- t(norm01(abs(zch)))
         ck[q] <- rgb(zch)
         ck[q+1] <- ck[q]
-        pp <- pk$pcoords[,k]/2
+        pp <- coords[,k]/2
         # v[q,] <- -pp + pos
         v[q,] <- pos
         v[q+1,]  <-  pp + pos
         q <- q+2
-      }
-      m <- m+1
     }
   }
   cat("100% completed\n")
@@ -143,6 +179,35 @@ function(s2, odfsdata, threshold=0.5, showglyph=FALSE)
   rgl.viewpoint(0,0)
   par3d("windowRect"= c(100, 100, 700, 700), zoom=0.68)
   rgl.bringtotop()
+  ##------------------
+  ## storing nii volumes
+  for(k in 1:3) {
+    mx <- matrix(0, dm[1],dm[2])
+    mx[z2d] <- v1perslice[,k]
+    V1[,,1,k] <- mx
+    mx <- matrix(0, dm[1],dm[2])
+    mx[z2d] <- v2perslice[,k]
+    V2[,,1,k] <- mx   # axial
+  }
+  ## gfas volume
+  mx <- matrix(0, dm[1],dm[2])
+  mx[z2d] <- gfas
+  volgfa[,,1] <- mx # axial
+  ##
+  # fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+  # res <- list(gfa=volgfa,  v1=V1, v2=, file=fsave)
+  # save(res, file=fsave)
+  # cat("wrote", fsave,"\n")
+  cat("\n")
+  f <- paste(savedir,"/data_gfa",sep="")
+  writeNIfTI(volgfa, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V1",sep="")
+  writeNIfTI(V1, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V2",sep="")
+  writeNIfTI(V2, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
 }
 
 

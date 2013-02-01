@@ -11,7 +11,7 @@
 \usage{
 sph.odfvxgrid(fbase=NULL, rg=c(1,1), swap=FALSE, btoption=1, threshold=0.4,
  kdir=4, zfactor=5, snapshot=FALSE, showimage="glyphgfa", bview="coronal",
- savedir=tempdir(), pngfig="odfglyphs", bg="white", texturefile=NA, order=4)
+ savedir=tempdir(), pngfig="odfglyphs", bg="white", order=4, texture=NULL, ...)
 }
 
 \arguments{
@@ -34,8 +34,9 @@ sph.odfvxgrid(fbase=NULL, rg=c(1,1), swap=FALSE, btoption=1, threshold=0.4,
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfglyphs"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
-\item{texturefile}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NA} - no texture). }
 \item{order}{ parameter associated with the order of the spherical harmonics approximation (default: 4). }
+\item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. } 
 }
 
 \details{
@@ -49,6 +50,8 @@ One QBI-compatible b-table defining the acquisition setup on a S2-shell is inclu
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Tuch D. S., Q-Ball Imaging, \emph{Magnetic Resonance in Medicine} 52 (2004), 1358-1372. 
@@ -80,7 +83,7 @@ Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1
   rgbvolmap(texture=TRUE, transp=TRUE)
   ## coronal glyphs + RGBmap
   sph.odfvxgrid(threshold=0.5, showimage="glyphrgbmap",
-    texturefile=paste(tempdir(),"/rgbmap.png", sep=""))
+    texture=file.path(tempdir(),"rgbmap.png"))
 }
 }
 

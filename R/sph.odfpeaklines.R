@@ -1,14 +1,14 @@
 ## Q-ball imaging volume processing for visualization of ODF line maps using findpeak()
 
 sph.odfpeaklines <-
-function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, snapshot=FALSE,  showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white", texturefile=NA, order=4)
+function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, snapshot=FALSE,  showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white", order=4, texture=NULL, ...)
 {
   showimages <- c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata") ## map types
   kshow <- match(showimage, showimages)
-	stopifnot(is.na(kshow) != TRUE)
+  stopifnot(is.na(kshow) != TRUE)
   bviews <- c("sagittal", "coronal", "axial")
   kv <- match(bview, bviews)
-	stopifnot(is.na(kv) != TRUE)
+  stopifnot(is.na(kv) != TRUE)
   ##-----------
   ## Read data
   testfilexist(fbase=fbase, btoption=btoption)
@@ -19,23 +19,25 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
   else {
     if(btoption == 2) { 
       if(is.null(fbase)) {
-				cat("Data files 'data.bval' and 'data.bvec' unspecified !\n") 
-				stop()
+        cat("Data files 'data.bval' and 'data.bvec' unspecified !\n") 
+        stop()
       } else {
-	      bval <- scantable(fbase=fbase, filename="data.bval")
- 	    	# bvec <- readtable(fbase=fbase, filename="data.bvec")
+        bval <- scantable(fbase=fbase, filename="data.bval")
+        # bvec <- readtable(fbase=fbase, filename="data.bvec")
         bvec <- scantable(fbase=fbase, filename="data.bvec")
         bvec <- matrix(bvec, ncol=3)
- 	    	btable <- cbind(bval,bvec)
-			}
+        btable <- cbind(bval,bvec)
+        rm(bval, bvec)
+      }
     }
     else stop()
   }
-	b0 <- which(btable[,1] == 0)
-	odfvertices <- btable[-b0,2:4]
-	tc <-  delaunayn(odfvertices)
-	tcsurf <- t( surf.tri(odfvertices,tc))	
+  b0 <- which(btable[,1] == 0)
+  odfvertices <- btable[-b0,2:4]
+  tc <-  geometry::delaunayn(odfvertices)
+  tcsurf <- t( surf.tri(odfvertices,tc))  
   ##----------------------------
+  gc()
   cat("Reading data ...")
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
   volimg <- img.nifti@.Data  
@@ -46,10 +48,12 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
     mask.nifti <-
       readniidata(fbase=fbase, filename=paste(roi,".nii.gz", sep=""))
   volmask <- mask.nifti@.Data  
+  rm(img.nifti, mask.nifti)
+  gc()
   ##----------------------------
-  volgfa <- array(0, dim=dim(volmask)) ## gfas map
-  V1 <- array(0, dim=c(dim(volmask), 3)) ## V1 direction
-  d <- dim(volimg)
+  d <- dim(volmask)
+  volgfa <- array(0, dim=d)   ## gfas map
+  V1 <- array(0, dim=c(d, 3)) ## V1 direction
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
@@ -60,20 +64,20 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
   else { first <- rg[1]; last <- rg[2] }
   cat("\n")
   ##-----------------------------
-	## SPH process preparation
-	gradient <- t(odfvertices)
-	z <- design.spheven(order,gradient,lambda=0.006)
-	plz <- plzero(order)/2/pi
-	ngrad <- dim(gradient)[2]
-	ngrad0 <- ngrad
-	lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
+  ## SPH process preparation
+  gradient <- t(odfvertices)
+  z <- design.spheven(order,gradient,lambda=0.006)
+  plz <- plzero(order)/2/pi
+  ngrad <- dim(gradient)[2]
+  ngrad0 <- ngrad
+  lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
   while(length(lord)>=ngrad0){
-	  order <- order-2
-		lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
- 		cat("Reduced order of spherical harmonics to",order,"\n")
- 	}
-	cat("Using",length(lord),"spherical harmonics\n")
-	L <- -diag(lord*(lord+1)) 
+    order <- order-2
+    lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
+     cat("Reduced order of spherical harmonics to",order,"\n")
+   }
+  cat("Using",length(lord),"spherical harmonics\n")
+  L <- -diag(lord*(lord+1)) 
   ##-----------------------------
   ## store 1st vector directions for each non-thresholded voxel 
   ## v1list: vector of lists
@@ -86,19 +90,19 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
     slicedata <- read.slice(img=volimg, mask=volmask, slice=sl, swap=swap, bview=bview)
     ymaskdata <- premask(slicedata)
     if(ymaskdata$empty) next # empty mask
-		maxslicedata <- max(slicedata$niislicets) ##????
-		S <- ymaskdata$yn[-b0,]
-		S <- S / maxslicedata
-		s0 <- 1
-		si <- apply(S, 2, datatrans, s0)
-		sicoef <- z$matrix%*% si
-		sphcoef <- plz%*%L%*%sicoef
-		coef0 <- sphcoef[1,]
-		sphcoef[1,] <- 1/2/sqrt(pi)
-		sphcoef[-1,] <- sphcoef[-1,]/8/pi
-		## odfs
-		odfs <- t(z$design) %*% sphcoef
-		odfs <- apply(odfs, 2, norm01) 
+    maxslicedata <- max(slicedata$niislicets) ##????
+    S <- ymaskdata$yn[-b0,]
+    S <- S / maxslicedata
+    s0 <- 1
+    si <- apply(S, 2, datatrans, s0)
+    sicoef <- z$matrix%*% si
+    sphcoef <- plz%*%L%*%sicoef
+    coef0 <- sphcoef[1,]
+    sphcoef[1,] <- 1/2/sqrt(pi)
+    sphcoef[-1,] <- sphcoef[-1,]/8/pi
+    ## odfs
+    odfs <- t(z$design) %*% sphcoef
+    odfs <- apply(odfs, 2, norm01) 
     ## gfas
     gfas <- apply(odfs, 2, genfa)
     gfas <- norm01(gfas) ## ??
@@ -132,7 +136,7 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
         pk <- findpeak(odf, t(odfvertices), tcsurf)
         if(length(pk$peaks) < 1) next 
 ##      if(length(pk$peaks) < 1 | (length(pk$peaks) > 4)) {
-##				nullvectors <- c(nullvectors, m)
+##        nullvectors <- c(nullvectors, m)
 ##         next
 ##      }
         v1perslice[m,] <- pk$pcoords[,1]
@@ -213,13 +217,12 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
         rgl.bringtotop()
       }
-      texture <- FALSE
       switch(kshow,
       { ovr <- FALSE },
       { ovr <- TRUE; imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas },
       { ovr <- FALSE },
       { ovr <- TRUE; imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas },
-      { ovr<- TRUE; texture <- TRUE; zfactor=0.1;
+      { ovr<- TRUE; zfactor=0.1;
         imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas }, # linesrgb
       { ovr <- TRUE;
       imgfa <- slicedata$niislicets[,,1] * slicedata$mask;
@@ -227,9 +230,7 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
       if(ovr) {
         bg3d(col=bg) 
         light3d()  
-        gfasurf3d(imgfa, zfactor=zfactor, alpha=0.6, texture=texture,
-          texturefile=texturefile)
-        # rgl.viewpoint(theta=0, phi=0)
+        gfasurf3d(imgfa, zfactor=zfactor, alpha=0.6, texture=texture, ...)
         rgl.viewpoint(theta=0, phi=15)
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
           rgl.bringtotop()
@@ -251,10 +252,10 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
   }
   cat("\n")
   ## save V1 directions
-  if(run) {
-    v1file <- paste(savedir,"/V1list.RData",sep="")
-    save(v1list, file=v1file) # list of v1 vectors 
-    cat("saved V1 directions ",v1file,"\n")
-  }
+  # if(run) {
+  #   v1file <- paste(savedir,"/V1list.RData",sep="")
+  #   save(v1list, file=v1file) # list of v1 vectors 
+  #   cat("saved V1 directions ",v1file,"\n")
+  # }
 }
 

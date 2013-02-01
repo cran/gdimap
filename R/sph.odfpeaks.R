@@ -25,24 +25,28 @@ function(fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, showglyph=F
         bvec <- scantable(fbase=fbase, filename="data.bvec")
         bvec <- matrix(bvec, ncol=3)
  	    	btable <- cbind(bval,bvec)
+        rm(bval, bvec)
 			}
     }
     else stop()
   }
 	b0 <- which(btable[,1] == 0)
 	odfvertices <- btable[-b0,2:4]
-	tc <-  delaunayn(odfvertices)
+	tc <-  geometry::delaunayn(odfvertices)
 	tcsurf <- t( surf.tri(odfvertices,tc))	
   ##----------------------------
+	gc()
   cat("Reading data ...")
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
   volimg <- img.nifti@.Data  
   mask.nifti <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   volmask <- mask.nifti@.Data  
+  rm(img.nifti, mask.nifti)
+  gc()
   ##----------------------------
-  volgfa <- array(0, dim=dim(volmask)) ## gfas map
-  V1 <- array(0, dim=c(dim(volmask), 3)) ## V1 direction
-  d <- dim(volimg)
+  d <- dim(volmask)
+  volgfa <- array(0, dim=d) ## gfas map
+  V1 <- array(0, dim=c(d, 3)) ## V1 direction
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,

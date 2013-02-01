@@ -3,22 +3,17 @@
 ##
 
 gfasurf3d <-
-function(im, zfactor=5, alpha=0.5, texture=FALSE, texturefile=NA)
+function(im, zfactor=5, ...)
 {
 	z <- im*zfactor
 	zlim <- range(z)
 	zlen <- zlim[2] - zlim[1] + 1
-	# colorlut <- terrain.colors(zlen) # height color lookup table
-	# colorlut <- heat_hcl(zlen, h = c(0, -100), c = c(40, 80), l = c(75, 40), power = 1)
-	colorlut <- terrain_hcl(zlen, h = c(0, -100), c. = c(40, 80), l = c(75, 40), power = 1)
+	# colorlut <- colorspace::terrain.colors(zlen) 
+	# colorlut <- colorspace::heat_hcl(zlen, h = c(0, -100), c = c(40, 80), l = c(75, 40), power = 1)
+	colorlut <- colorspace::terrain_hcl(zlen, h = c(0, -100), c. = c(40, 80), l = c(75, 40), power = 1)
 	col <- colorlut[ floor(z-zlim[1]+1) ] # assign colors to heights for each point
 	d <- dim(im)
-	if(texture){
-    if(is.na(texturefile)) { warning("No texture file !"); return(1) }
-	 	surface3d(1:d[1], 1:d[2], z,  color=col, back="lines", add=TRUE, alpha=alpha, texture=texturefile)
-  }
-	else 
-	 	surface3d(1:d[1], 1:d[2], z,  color=col, back="lines", add=TRUE, alpha=alpha)
+	surface3d(1:d[1], 1:d[2], z,  color=col, back="lines", add=TRUE, ...)
 }
 
 #----------------------------------------------
@@ -39,7 +34,7 @@ function(odfvert, btable, lambda=NULL)
 	lvalues <- sqrt(btable[,1]*0.01506)
 	bvector <- btable[,2:4]*repmat(lvalues,1,3)
 	q0 <- (odfvert %*% t(bvector) * lambda) / pi 
-	invisible(sinc(q0))
+	invisible(gsl::sinc(q0))
 }
 
 # GQI2

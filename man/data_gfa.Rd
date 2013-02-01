@@ -20,6 +20,8 @@ For reasons of limited CRAN storage space, the source data set contains just 4 c
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. Facing the challenge of estimating human brain white matter pathways. \emph{In Proc. of NCTA 2012 - Int. Conf. on Neural Computation Theory and Applications} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress.
 
 Whitcher, B., Schmid, V. J., and Thornton, A. Working with the DICOM and NIfTI data standards in R. \emph{Journal of Statistical Software} 44, 6 (2011), 1-28.

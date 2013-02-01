@@ -10,19 +10,15 @@ Using GFA data and the main direction of ODF profiles produced by \code{gqi.odfp
 
 \usage{
 rgbvolmap(fbase=NULL, rg=c(1,1),  bview="coronal",
- texture=FALSE, transparent=FALSE,  saveplot=FALSE,
- pngfile=paste(tempdir(),"/rgbmap.png",sep="") )
+ texture=NULL, bg="black")
 }
 
 \arguments{
 \item{fbase}{ Directory where the required input data files are located. } 
 \item{rg}{ range of slices to process (default option \code{rg=c(1,1)}); \code{rg=NULL} processes all slices. }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
-\item{texture}{ logical variable for texture generation  \code{texture=FALSE}); \code{texture=TRUE} is used for generating PNG file to be used as texture in overlay maps. }
-\item{transparent}{ background colour \{white, black\} (default black background: \code{FALSE}). }
-\item{saveplot}{ logical variable controlling plot saving (default: \code{FALSE}). }
-\item{pngfile}{ PNG file name and location to use when \code{saveplot} is \code{TRUE} \cr
- (default \code{paste(tempdir(),"/rgbvolmap.png",sep="")}). }
+\item{texture}{ PNG file name and location to store image, to be used as texture in overlay maps (default\code{NULL}). }
+\item{bg}{ background colour (default \code{"black"}). }
 }
 
 \details{
@@ -42,6 +38,8 @@ RGB maps - Red-Green-Blue colour maps\cr
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Auguie, B. \pkg{gridExtra}: functions in Grid graphics, 2012. R package version 0.9.1.
@@ -78,8 +76,8 @@ patterns. \emph{AJNR Am. J. Neuroradiology} 25 (2004), 356-369.
     gqi.odfpeaks(rg=c(1,1), showglyph=FALSE)
     ## Show RGB maps for range of slices processed by gqi.odfpeaks()
     rgbvolmap(fbase=tempdir(), rg=c(1,1))
-    ## White background
-    rgbvolmap(fbase=tempdir(), rg=c(1,1), transparent=TRUE)
+    ## Changing background colour
+    rgbvolmap(fbase=tempdir(), rg=c(1,1), bg="transparent")
     ##-------------
     ## Process whole volume: generates NIfTI files
     ##   data_gfa_gqi.nii.gz and data_V1_gqi.nii.gz

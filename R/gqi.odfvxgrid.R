@@ -1,6 +1,6 @@
 
 gqi.odfvxgrid <-
-function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5, snapshot=FALSE, showimage="glyphgfa", bview="coronal", savedir=tempdir(), pngfig="odfglyphs", bg="white", texturefile=NA)
+function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5, snapshot=FALSE, showimage="glyphgfa", bview="coronal", savedir=tempdir(), pngfig="odfglyphs", bg="white", texture=NULL, ...)
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
@@ -8,7 +8,7 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
   kshow <- match(showimage, showimages)
   bviews <- c("sagittal", "coronal", "axial")
   kv <- match(bview, bviews)
-	stopifnot(is.na(kv) != TRUE)
+  stopifnot(is.na(kv) != TRUE)
   ##---------
   # generate S2 grid
   s2 <- s2tessel.zorder(depth=depth, viewgrid=FALSE)
@@ -26,19 +26,23 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
       bvec <- scantable(fbase=fbase, filename="data.bvec")
       bvec <- matrix(bvec, ncol=3)
       btable <- cbind(bval,bvec)
+      rm(bval, bvec)
     }
     else stop()
   }
   ##----------------------------
+  gc()
   cat("Reading data ...")
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
   volimg <- img.nifti@.Data  
   mask.nifti <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   volmask <- mask.nifti@.Data  
+  rm(img.nifti, mask.nifti)
+  gc()
   ##----------------------------
+  d <- dim(volmask)
   # volgfa <- array(0, dim=dim(volmask)) ## gfas map
   # V1 <- array(0, dim=c(dim(volmask), 3)) ## V1 direction
-  d <- dim(volimg)
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
@@ -118,14 +122,11 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
     ##-----------
     # ptm <- proc.time()
     if(kshow != 1){
-      if(sl == last){ rm(img.nifti); rm(mask.nifti) }
       if(kshow != 6) rm(slicedata)
       gc() 
-      ##
       if(sl == first)
         rglstart(bg=bg)
       if(kshow > 2) {
-        ##---
         ## Display grid of glyphs
         if(depth < 3) {
         ## Plotting once all voxels: ! slow for large grid size and glyph dim !
@@ -154,15 +155,13 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
           rgl.triangles(grid[(eg+1):eg2,1], grid[(eg+1):eg2,2], grid[(eg+1):eg2,3],
             col=t(vcolors[(ec+1):ec2,]))
         }
-        ##---
       }
-      texture <- FALSE
       switch(kshow,
         { ovr <- FALSE },
         { ovr <- TRUE; imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas },
         { ovr <- FALSE },
         { ovr <- TRUE; imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas },
-        { ovr<- TRUE; texture <- TRUE; zfactor=0.1;
+        { ovr<- TRUE; zfactor=0.1;
           imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas }, # +rgb
         { ovr <- TRUE;
           imgfa <- slicedata$niislicets[,,1] * slicedata$mask;
@@ -170,8 +169,7 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
       if(ovr) {
         bg3d(col=bg) 
         light3d()  
-        gfasurf3d(imgfa, zfactor=zfactor, alpha=0.6, texture=texture,
-          texturefile=texturefile)
+        gfasurf3d(imgfa, zfactor=zfactor, alpha=0.6, texture=texture, ...)
         rgl.viewpoint(theta=0, phi=15)
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
         rgl.bringtotop()

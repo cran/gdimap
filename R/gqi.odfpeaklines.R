@@ -1,14 +1,14 @@
 gqi.odfpeaklines <-
-function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, snapshot=FALSE,  showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white", texturefile=NA)
+function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, snapshot=FALSE,  showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white", texture=NULL, ...)
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
   showimages <- c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata") ## map types
   kshow <- match(showimage, showimages)
-	stopifnot(is.na(kshow) != TRUE)
+  stopifnot(is.na(kshow) != TRUE)
   bviews <- c("sagittal", "coronal", "axial")
   kv <- match(bview, bviews)
-	stopifnot(is.na(kv) != TRUE)
+  stopifnot(is.na(kv) != TRUE)
   ##---------
   # generate S2 grid
   s2 <- s2tessel.zorder(depth=depth, viewgrid=FALSE)
@@ -28,11 +28,14 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
       bvec <- scantable(fbase=fbase, filename="data.bvec")
       bvec <- matrix(bvec, ncol=3)
       btable <- cbind(bval,bvec)
+      rm(bval, bvec)
     }
     else stop()
   }
   ##----------------------------
-  cat("Reading data ...")
+	gc()
+  cat("Reading data ...\n")
+  ptm <- proc.time()
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
   volimg <- img.nifti@.Data  
   if(is.null(roi))
@@ -42,10 +45,13 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     mask.nifti <-
       readniidata(fbase=fbase, filename=paste(roi,".nii.gz", sep=""))
   volmask <- mask.nifti@.Data  
+	print(proc.time() - ptm)
+  rm(img.nifti, mask.nifti)
+  gc()
   ##----------------------------
-  volgfa <- array(0, dim=dim(volmask)) ## gfas map
-  V1 <- array(0, dim=c(dim(volmask), 3)) ## V1 direction
-  d <- dim(volimg)
+  d <- dim(volmask)
+  volgfa <- array(0, dim=d)   ## gfas map
+  V1 <- array(0, dim=c(d, 3)) ## V1 direction
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
@@ -59,10 +65,10 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
   ## "gdimethod" process
   cat("Estimating slice odfs ...\n")
   switch(gdimethod,
-      q2odf <- gqifn(odfvert=odfvertices, btable=btable,
-                     lambda=lambda),
-      q2odf <- gqifn2(odfvert=odfvertices, btable=btable,
-                     lambda=lambda) )
+    q2odf <- gqifn(odfvert=odfvertices, btable=btable,
+                   lambda=lambda),
+    q2odf <- gqifn2(odfvert=odfvertices, btable=btable,
+                   lambda=lambda) )
   ##-----------------------------
   ## store 1st vector directions for each non-thresholded voxel 
   ## v1list: vector of lists
@@ -191,13 +197,12 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
         rgl.bringtotop()
       }
-      texture <- FALSE
       switch(kshow,
       { ovr <- FALSE },
       { ovr <- TRUE; imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas },
       { ovr <- FALSE },
       { ovr <- TRUE; imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas },
-      { ovr<- TRUE; texture <- TRUE; zfactor=0.1;
+      { ovr<- TRUE; zfactor=0.1;
         imgfa <- matrix(0, nr, nc); imgfa[z2d ] <- gfas }, # linesrgb
       { ovr <- TRUE;
       imgfa <- slicedata$niislicets[,,1] * slicedata$mask;
@@ -205,15 +210,12 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
       if(ovr) {
         bg3d(col=bg) 
         light3d()  
-        gfasurf3d(imgfa, zfactor=zfactor, alpha=0.6, texture=texture,
-          texturefile=texturefile)
-        # rgl.viewpoint(theta=0, phi=0)
+        gfasurf3d(imgfa, zfactor=zfactor, alpha=0.6, texture=texture, ...)
         rgl.viewpoint(theta=0, phi=15)
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
-          rgl.bringtotop()
+        rgl.bringtotop()
       }
       if(snapshot) {
-        ## sp <- tempfile(pattern="maplines", tmpdir=savedir, fileext=".png")
         sp <- paste(savedir,"/",pngfig,"_sl",sl,".png", sep="")
         readline("Prepare zoom for taking rgl.snapshot and press return ... ")
         rgl.snapshot(sp)
@@ -229,10 +231,10 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
   }
   cat("\n")
   ## save V1 directions
-  if(run) {
-    v1file <- paste(savedir,"/V1list.RData",sep="")
-    save(v1list, file=v1file) # list of v1 vectors 
-    cat("saved V1 directions ",v1file,"\n")
-  }
+  # if(run) {
+  #   v1file <- file.path(savedir,"V1list.RData")
+  #   save(v1list, file=v1file) # list of v1 vectors 
+  #   cat("saved V1 directions ",v1file,"\n")
+  # }
 }
 

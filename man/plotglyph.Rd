@@ -54,9 +54,7 @@ Barber, C. B., Habel, K., Grasman, R., Gramacy, R. B., Stahel, A., and Sterratt,
 
 \examples{
 \dontrun{
-    gqi.odfpeaklines(showglyph=TRUE)
-    ##
-    gqi.odfvmflines(showglyph=TRUE)
+    gqi.odfvmflines(showglyph=TRUE, thr=0.7)
     ## noise-free simulations and vMF estimation (2 directions)
     simulglyph.vmf(angles=c(20,110),b=1500)
 }

@@ -1,5 +1,5 @@
 synthfiberss2z <-
-function(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL, logplot=TRUE, pos=c(0,0,0), showglyph=FALSE, new=TRUE, wi=c(0.5,0.5))
+function(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL, logplot=TRUE, pos=c(0,0,0), showglyph=FALSE, new=TRUE, wi=NULL)
 {
   egv <- c(1700, 200, 200) * 10^(-6) # see alexander-2002
   Du <- matrix(egv, ncol=1)
@@ -7,6 +7,12 @@ function(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL, logplot=TRUE, pos=c(0,0
   sv <- numeric(dim(g0)[1])
   na <- length(angles)
   # fi <- 1/na # equal weight for fibers, no isotropic part
+	if(is.null(wi)) {
+	  l <- length(angles)
+	  wi <- rep(1/l, times=l)
+	}
+	else 
+		stopifnot(length(wi) == length(angles))
   for(k in 1:na) {
     angl <- angles[k]
     if(angl) {
@@ -40,7 +46,7 @@ function(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL, logplot=TRUE, pos=c(0,0
     ## cat("signal range:", range(sv), "\n")
     if(logplot) 
       svp <- log(svp) # apply to view orientation
-    tc <- delaunayn(g0)
+    tc <- geometry::delaunayn(g0)
     pc <- g0*svp
     if(new)
       open3d()

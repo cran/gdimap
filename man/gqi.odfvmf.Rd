@@ -26,7 +26,7 @@ gqi.odfvmf(gdi="gqi", run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL,
 \item{rg}{ range of slices to process; default option \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
 \item{lambda}{ diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"}.
- By default the following default values are used when \code{lambda=NULL} is specified: 1.24 in "gqi", 3 in "gqi2". }
+ By default the following default values are used when \code{lambda=NULL} is specified: 1.24 in \dQuote{gqi}, 3 in \dQuote{gqi2}. }
 \item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
 \item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}), and the 3D-DSI grid b-table extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
@@ -53,8 +53,8 @@ This b-table has 203 points uniformly distributed on a 3D grid limited to the vo
 In both tables, the b-values range from 0 to 4000.
 Sampling densities of N=81 (depth=2) and N=321 (depth=3) on the hemisphere are often used in ODF profile reconstruction from diffusion acquisitions. 
 
-The output files \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz} and \file{data_gfa_gqi.nii.gz} are used to visualize RGB maps through \code{rgbvolmap()} or via the "FSL/fslview" tool.
-These files may be used to perform white matter fibre tractography. 
+The output files \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz} and \file{data_gfa_gqi.nii.gz} may be used for probabilistic white matter tractography. The principal diffusion direction (PDD) files \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz} retain information about the  'theta' and 'alpha' parameters of the von Mises-Fisher mixture at each voxel.
+For visualization purposes via a external tool such as "FSL/fslview" the voxel PDDs must be normalized to the unit sphere beforehand by using \code{niinorm}.
 }
 
 \value{
@@ -65,6 +65,8 @@ These files may be used to perform white matter fibre tractography.
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2012. R package version 0.1-0.

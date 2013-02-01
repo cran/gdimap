@@ -1,6 +1,6 @@
 
 simulglyph.vmf <-
-function(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000, lambda=NULL, order=4, sigma=NULL, threshold=0.4, snapshot=FALSE, savedir=tempdir(), pngfig="glyph1", showglyph=TRUE, aniso=NULL, logplot=TRUE, wi=c(0.5,0.5))
+function(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000, lambda=NULL, order=4, sigma=NULL, threshold=0.4, snapshot=FALSE, savedir=tempdir(), pngfig="glyph1", showglyph=TRUE, aniso=NULL, logplot=TRUE, wi=NULL)
 {
   gdimethods <- c("gqi", "gqi2", "sph")
   gdimethod <- match(gdi, gdimethods)
@@ -14,6 +14,13 @@ function(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000, lambda=NULL,
     g0 <- s2grid
   ## synthetize diffusion signal
   ## open3d()
+	if(is.null(wi)) {
+	  l <- length(angles)
+	  wi <- rep(1/l, times=l)
+	}
+	else 
+		stopifnot(length(wi) == length(angles))
+  ##
   S <- synthfiberss2z(g0=g0, angles=angles, logplot=logplot, b=b, S0=1,
     sigma=sigma, showglyph=showglyph, wi=wi)
   if(snapshot) {
@@ -102,7 +109,7 @@ function(odf, odfvertices, threshold=0.5, showglyph=TRUE)
   npar <- nc*kc+kc-1
   bic <- -1.0e+10; nf <- 0;; yy <- NULL
   for(k in seq(2,6,by=2)) {
-    y2 <- movMF(vx, k=k, control=startctl) 
+    y2 <- movMF::movMF(vx, k=k, control=startctl) 
     par <- logb(n)*npar[k]
     bic2 <- 2*logLik(y2) - par
     if(bic2 > bic) {

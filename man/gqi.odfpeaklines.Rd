@@ -14,7 +14,7 @@ gqi.odfpeaklines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1),
  swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2,
  zfactor=5, showglyph=FALSE, snapshot=FALSE, showimage="linesgfa",
  bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white",
- texturefile=NA)
+ texture=NULL, ...)
 }
 
 \arguments{
@@ -42,7 +42,8 @@ gqi.odfpeaklines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1),
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfpeak"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
-\item{texturefile}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NA} - no texture). }
+\item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. } 
 }
 
 \details{
@@ -70,7 +71,7 @@ Slice map display and overlay selection is controlled by specifying one the argu
  \code{"lines"} - line map only;
  \code{"linesgfa"} - GFA overlayed on line map;
  \code{"linesrgbmap"} - lines overlayed on RGB map (if available);
- \code{"linesdata"} - \file{data_brain.nii.gz} is overlayed on line map.
+ \code{"linesdata"} - \file{data_brain.nii.gz} is overlayed on line map;
 }
 
 \value{
@@ -80,6 +81,8 @@ The file \file{V1list.RData} containing the first main orientation directions fo
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Yeh, F.-C., Wedeen, V. J., and Tseng, W.-Y. I. Generalized q-Sampling Imaging. \emph{IEEE Transactions on Medical Imaging} 29, 9 (2010), 1626-1635.
@@ -119,10 +122,11 @@ Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, Unive
   gqi.odfpeaklines(run=FALSE, showimage="linesgfa")
   ##-------------
   ## generate slice texture first from default data file
-  rgbvolmap(texture=TRUE, transparent=TRUE)
+  texturefname <- file.path(tempdir(),"rgbmap.png")
+  rgbvolmap(texture=texturefname, bg="transparent")
   ## Line map with RGB map overlay
   gqi.odfpeaklines(run=TRUE, showimage="linesrgbmap",
-    texturefile=paste(tempdir(),"/rgbmap.png", sep=""))
+    texture=texturefname)
   ##-------------
   ## Show examples of reconstructed glyphs in ODF processing 
   gqi.odfpeaklines(showimage="lines", showglyph=TRUE)

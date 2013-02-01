@@ -1,7 +1,6 @@
 rgbvolmap <-
 function(fbase=NULL, rg=c(1,1), bview="coronal",
- texture=FALSE, transparent=FALSE,  saveplot=FALSE,
- pngfile=paste(tempdir(),"/rgbmap.png",sep="") )
+ texture=NULL, bg="black")
 {
   bviews <- c("sagittal", "coronal", "axial")
   kv <- grep(bview, bviews)
@@ -62,14 +61,12 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
     ##----------
     ## display
     mask <- gfaslice
-    if(transparent) 
-      zpr[ mask == 0  ] <- "transparent"
+    zpr[ mask == 0  ] <- bg
     zpr2 <- array(0, dim=c(nc,nr))
-    if(texture){ ## for use as texture
+    if(!is.null(texture)){ 
       #nm <- max(nc,nr)
       #zpr2 <- array(0, dim=c(nm,nm)) # using square texture
       zpr2[nc:1, ] <- zpr[ ,nc:1] 
-      saveplot <- TRUE
       ww <- 7; hh <- 7
     }
     else {
@@ -82,22 +79,21 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
       # ww <- 7*1/nn; hh <- 7*mm[1]/(mm[2] * nn)
       ww <- w*1/nn; hh <- h*mm[1]/(mm[2] * nn)
     }
-    r1 <- rasterGrob(zpr2, interpolate=TRUE, width=ww, height=hh,
-      default.units="inches")
+    r1 <- grid::rasterGrob(zpr2, interpolate=TRUE, width=ww,
+															 	height=hh, default.units="inches")
     displist[j] <- list(r1)
   }
   cat("\n")
-  ## Initialize Display
-  if(transparent)
-    x11()
-  else
-    x11(bg="black")
-  ## display gmaps 
-  do.call(grid.arrange,  displist) 
-  if(saveplot) {
-    savePlot(pngfile)
-    cat("saved",pngfile,"\n")
-    if(texture){ Sys.sleep(0.25); dev.off() }
+  ## Initialize Cairo display for texture
+  if(!is.null(texture)){ 
+    dev.new(type="cairo", bg=bg)
+    do.call(gridExtra::grid.arrange,  displist) 
+    savePlot(texture)
+    cat("saved",texture,"\n")
+    Sys.sleep(0.25)
+		dev.off()
   }
+  else 
+    do.call(gridExtra::grid.arrange,  displist) 
 }
 

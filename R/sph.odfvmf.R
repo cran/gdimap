@@ -24,24 +24,29 @@ function(run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, s
         bvec <- scantable(fbase=fbase, filename="data.bvec")
         bvec <- matrix(bvec, ncol=3)
         btable <- cbind(bval,bvec)
+        rm(bval, bvec)
       }
     }
     else stop()
   }
   b0 <- which(btable[,1] == 0)
   odfvertices <- matrix(btable[-b0,2:4], ncol=3)
-  tc <-  delaunayn(odfvertices)
+  tc <-  geometry::delaunayn(odfvertices)
   tcsurf <- t( surf.tri(odfvertices,tc))  
   ##----------------------------
+  gc()
   cat("Reading data ...")
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
   volimg <- img.nifti@.Data  
   mask.nifti <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   volmask <- mask.nifti@.Data  
-  volgfa <- array(0, dim=dim(volmask)) ## gfas map
-  V1 <- array(0, dim=c(dim(volmask), 3)) ## V1 direction
-  V2 <- array(0, dim=c(dim(volmask), 3)) ## V2 direction
-  d <- dim(volimg)
+  rm(img.nifti, mask.nifti)
+  gc()
+  ##----------------------------
+  d <- dim(volmask)
+  volgfa <- array(0, dim=d)   ## gfas map
+  V1 <- array(0, dim=c(d, 3)) ## V1 direction
+  V2 <- array(0, dim=c(d, 3)) ## V2 direction
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
@@ -126,12 +131,12 @@ function(run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, s
         vx <- odfvertices[-ith,]
         n <- dim(vx)[1]
         ## Fit a vMF mixture  with k=2
-        y1 <- movMF(vx, k=2, control=startctl)
+        y1 <- movMF::movMF(vx, k=2, control=startctl)
         ## Inspect the fitted parameters:
         par1 <- logb(n)*npar1
         bic1 <- 2*logLik(y1) - par1
         ## Fit a vMF mixture  with k=4
-        y2 <- movMF(vx, k=4, control=startctl)
+        y2 <- movMF::movMF(vx, k=4, control=startctl)
         par2 <- logb(n)*npar2
         bic2 <- 2*logLik(y2) - par2
         if(bic1 >= bic2) {
@@ -148,9 +153,9 @@ function(run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, s
         v1perslice[m,] <- pk$pcoords[,1]
         if(np == 4) {
           if(all.equal(abs(pk$pcoords[,1]), abs(pk$pcoords[,2]),
-           			toler=0.01) == TRUE) 
+                 toler=0.01) == TRUE) 
             v2perslice[m,] <- as.numeric(pk$pcoords[,3])
-       	  else 
+           else 
             v2perslice[m,] <- as.numeric(pk$pcoords[,2])
         }
         if(showglyph) {
@@ -198,30 +203,40 @@ function(run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, s
         V2[,,sl,k] <- mx } ) # axial
       }
       ## gfas volume
+      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
       switch(kv,
       { mx <- matrix(0, d[2],d[3])
       mx[z2d] <- gfas
-      volgfa[sl,,] <- mx}, # sagittal
+      volgfa[sl,,] <- mx 
+      res <- list(kv=kv, gfa=volgfa[sl,,],  v1=V1[sl,,,], v2=V2[sl,,,],
+        file=fsave) }, # sagittal
       { mx <- matrix(0, d[1],d[3])
       mx[z2d] <- gfas
-      volgfa[,sl,] <- mx}, # coronal
+      volgfa[,sl,] <- mx
+      res <- list(kv=kv, gfa=volgfa[,sl,],  v1=V1[,sl,,], v2=V2[,sl,,],
+        file=fsave) }, # coronal
       { mx <- matrix(0, d[1],d[2])
       mx[z2d] <- gfas
-      volgfa[,,sl] <- mx} ) # axial
+      volgfa[,,sl] <- mx
+      res <- list(kv=kv, gfa=volgfa[,,sl],  v1=V1[,,sl,], v2=V2[,,sl,],
+        file=fsave) } ) # axial
       ##
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
-      res <- list(gfa=volgfa[,,sl],  v1=V1[,,sl,], v2=V2[,,sl,],
-        file=fsave)
       save(res, file=fsave)
       cat("wrote", fsave,"\n")
-    }
-    else {
+    } else {
       fsave <- paste(savedir,"/vol",sl,".RData",sep="")
       load(fsave)
       cat("loaded", fsave, "\n")
-      volgfa[,,sl] <- res$gfa
-      V1[,,sl,] <- res$v1
-      V2[,,sl,] <- res$v2
+      switch(res$kv,
+			{ V1[sl,,,] <- res$v1
+        V2[sl,,,] <- res$v2
+        volgfa[sl,,] <- res$gfa },
+			{ V1[,sl,,] <- res$v1
+        V2[,sl,,] <- res$v2
+        volgfa[,sl,] <- res$gfa },
+			{ volgfa[,,sl] <- res$gfa
+        V1[,,sl,] <- res$v1
+        V2[,,sl,] <- res$v2 } )
     }
   }
   cat("\n")

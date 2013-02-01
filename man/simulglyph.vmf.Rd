@@ -14,7 +14,7 @@ ODF profiles and fibre directions are estimated by relying on von Mises-Fisher (
 simulglyph.vmf(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000,
  lambda=NULL, order=4, sigma=NULL, threshold=0.4, snapshot=FALSE,
  savedir=tempdir(), pngfig="glyph1", showglyph=TRUE, aniso=NULL,
- logplot=TRUE, wi=c(0.5,0.5))
+ logplot=TRUE, wi=NULL)
 }
 
 \arguments{
@@ -36,7 +36,7 @@ simulglyph.vmf(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000,
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{TRUE}). }
 \item{aniso}{ anisotropic parameter to use in ODF visualization in the range "[0,1)" or \code{NULL}. }
 \item{logplot}{ logical variable for selecting log-scale (default \code{TRUE}). }
-\item{wi}{ weight given to fiber's volume fraction (default for two fibers \code{c(0.5,0.5)}). }
+\item{wi}{ weight given to fiber's volume fraction. Example for two fibers with different weights \code{wi=c(0.7,0.3)} (default \code{NULL} gives equal weigth to all fibers.) }
 }
 
 \value{
@@ -50,6 +50,8 @@ To decide on the number of components to select the Bayesian information criteri
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2012. R package version 0.0-2.

@@ -15,7 +15,7 @@ Statistical orientation estimation in \code{gqi.odfvmf} is based on von Mises-Fi
 gqi.odfvmflines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE,
  lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5,
  showglyph=FALSE, snapshot=FALSE, showimage="linesgfa", bview="coronal",
- savedir=tempdir(), pngfig="odfvmf", bg="white", texturefile=NA)
+ savedir=tempdir(), pngfig="odfvmf", bg="white", texture=NULL, ...)
 }
 
 \arguments{
@@ -42,7 +42,8 @@ gqi.odfvmflines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALS
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfvmf"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
-\item{texturefile}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NA} - no texture). }
+\item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. }
 }
 
 \details{
@@ -74,6 +75,8 @@ The file \file{V1list.RData} containing the first main orientation directions fo
 }
 
 \references{
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
 Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2012. R package version 0.1-0.
@@ -129,9 +132,10 @@ Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, Unive
   gqi.odfvmflines(run=TRUE, depth=3, roi="slfcst")
   ##-------------
   ## coronal view with texture for a single slice
-  rgbvolmap(texture=TRUE, transparent=TRUE)
+  texturefname <- file.path(tempdir(),"rgbmap.png")
+  rgbvolmap(texture=texturefname, bg="transparent")
   gqi.odfvmflines(threshold=0.5, showimage="linesrgbmap",
-    texturefile=paste(tempdir(),"/rgbmap.png", sep=""))
+    texture=texturefname)
 }
 }
 

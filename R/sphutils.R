@@ -80,7 +80,7 @@ function(order,theta,phi)
 		mseq <- seq(-k,k,1)
 		for(m in mseq){
 			ind <- (k^2+k+2)/2+m
-			z <- legendre_sphPlm(k,abs(m),cos(theta))
+			z <- gsl::legendre_sphPlm(k,abs(m),cos(theta))
 			if(m < 0){
 				z <- sqrt(2)*z*cos(m*phi)
 			} 
@@ -100,29 +100,28 @@ function(order,theta,phi)
 #
 #   compute spherical harmonics
 #
-#require(gsl)
-order <- as.integer(max(0,order))
-if(length(theta)!=length(phi)) stop("need same length of theta and phi")
-kseq <- 0:order
-n <- length(phi)
-values <- matrix(0,(order+1)^2,n)
-l <- 1
-for(k in kseq){
-mseq <- (-k):k
-for(m in mseq){
-z <- legendre_sphPlm(k,abs(m),cos(theta))
-if(m < 0){
-z <- sqrt(2)*z*cos(m*phi)
-} 
-if(m > 0){
-z <- sqrt(2)*z*sin(m*phi)
-}
-values[l,] <- z
-l <- l+1
-}
-}
-#detach(package:gsl)
-values
+  order <- as.integer(max(0,order))
+  if(length(theta)!=length(phi)) stop("need same length of theta and phi")
+  kseq <- 0:order
+  n <- length(phi)
+  values <- matrix(0,(order+1)^2,n)
+  l <- 1
+  for(k in kseq){
+    mseq <- (-k):k
+    for(m in mseq){
+      z <- gsl::legendre_sphPlm(k,abs(m),cos(theta))
+      if(m < 0){
+        z <- sqrt(2)*z*cos(m*phi)
+      } 
+      if(m > 0){
+        z <- sqrt(2)*z*sin(m*phi)
+      }
+      values[l,] <- z
+      l <- l+1
+    }
+  }
+  #detach(package:gsl)
+  values
 }
 
 

@@ -21,7 +21,7 @@ function(depth=3, viewgrid=FALSE, saveg=FALSE)
 		write.table(g0, file=f, row.names=FALSE, col.names=FALSE)
 		cat("wrote",f,"\n")
 	}
-	tc <-  delaunayn(g0)
+	tc <-  geometry::delaunayn(g0)
 	tc.surf <- t( surf.tri(g0,tc) )
 	s2tess <- list(pc=g0, tcsurf=tc.surf)
 	#---------

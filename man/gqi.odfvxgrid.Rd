@@ -12,7 +12,7 @@
 gqi.odfvxgrid(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL,
  depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5,
  snapshot=FALSE, showimage="glyphgfa", bview="coronal",
- savedir=tempdir(), pngfig="odfglyphs", bg="white", texturefile=NA)
+ savedir=tempdir(), pngfig="odfglyphs", bg="white", texture=NULL, ...)
 }
 
 \arguments{
@@ -36,7 +36,8 @@ gqi.odfvxgrid(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL,
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfglyphs"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
-\item{texturefile}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NA} - no texture). }
+\item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. } 
 }
 
 \details{
@@ -80,10 +81,11 @@ Zeileis, A., Hornik, K., and Murrell, P. Escaping RGBland: Selecting colors for 
   gqi.odfvxgrid(gdi="gqi", threshold=0.5, depth=2, showimage="glyphgfa")
   ##----
   ## generate slice RGB map as texture
-  rgbvolmap(texture=TRUE, transp=TRUE)
+  texturefname <- file.path(tempdir(),"rgbmap.png")
+  rgbvolmap(texture=texturefname, bg="transparent")
   ## coronal glyphs + RGBmap
   gqi.odfvxgrid(threshold=0.5, depth=2, showimage="glyphrgbmap",
-    texturefile=paste(tempdir(),"/rgbmap.png", sep=""))
+    texture=texturefname)
 }
 }
 
