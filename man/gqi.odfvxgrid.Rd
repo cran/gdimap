@@ -9,7 +9,7 @@
 }
 
 \usage{
-gqi.odfvxgrid(fbase=NULL, rg=c(1,1), swap=FALSE, mddratio=1.2,
+gqi.odfvxgrid(fbase=NULL, rg=c(1,1), swap=FALSE, mddratio=1.24,
  depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5,
  snapshot=FALSE, showimage="glyphgfa", bview="coronal",
  savedir=tempdir(), pngfig="odfglyphs", bg="white", texturefile=NA)
@@ -17,17 +17,20 @@ gqi.odfvxgrid(fbase=NULL, rg=c(1,1), swap=FALSE, mddratio=1.2,
 
 \arguments{
 \item{fbase}{ Directory where the required input data files are located. } 
-\item{rg}{ range of slices to process (default option \code{rg=c(23,23)}); \code{rg=NULL} processes all slices. }
+\item{rg}{ range of slices to process (default option \code{rg=c(1,1)}); \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
-\item{mddratio}{ GQI parameter (default: 1.2). }
+\item{mddratio}{ GQI parameter (default: 1.24). }
 \item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
 \item{btoption}{ b-table selection between \file{dsi203_bmax4000.txt} (\code{btoption=1}), and the 3D-DSI grid b-table extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{kdir}{ maximum number of fibre directions to map (default: 4). }
 \item{zfactor}{ parameter controlling z-value in relief overlay maps (default: 5). }
 \item{snapshot}{ logical variable controlling line-maps snapshots (default: \code{FALSE}). }
-\item{showimage}{ object controlling visualization of line-maps (default: \code{"glyphgfa"}). Alternative options are \code{c("none", "gfa", "glyph", "glyphgfa", "glyphrgbmap", "glyphdata")} (see Details). }
-\item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"axial"}). }
+\item{showimage}{ object controlling visualization of line-maps (default: \code{"glyphgfa"}). \cr
+  Alternative options are: \cr
+ \code{c("none", "gfa", "glyph", "glyphgfa", "glyphrgbmap", "glyphdata")} \cr 
+ (see Details). }
+\item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfglyphs"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
@@ -36,8 +39,10 @@ gqi.odfvxgrid(fbase=NULL, rg=c(1,1), swap=FALSE, mddratio=1.2,
 
 \details{
 Generalized q-Sampling Imaging (GQI) is used for orientation distribution function (ODF) reconstruction.
-
-Slice glyph map display and overlay selection is controlled by specifying one the arguments \code{c("none", "gfa", "glyph", "glyphgfa", "glyphrgbmap", "glyphdata")} for \code{showimages}. Meanings are as follows: \code{"none"} - no overlay; \code{"gfa"} - GFA map only; \code{"glyph"} - glyph map only; \code{"glyphgfa"} - GFA overlayed on glyph map; \code{"glyphrgbmap"} - glyphs overlayed on RGB map (if available); \code{"glyphdata"} - \file{data_brain.nii.gz} is overlayed on line map.
+Slice glyph map display and overlay selection is controlled by specifying one the arguments \cr
+\code{c("none", "gfa", "glyph", "glyphgfa", "glyphrgbmap", "glyphdata")} \cr
+ for \code{showimages}.
+Meanings are as follows: \code{"none"} - no overlay; \code{"gfa"} - GFA map only; \code{"glyph"} - glyph map only; \code{"glyphgfa"} - GFA overlayed on glyph map; \code{"glyphrgbmap"} - glyphs overlayed on RGB map (if available); \code{"glyphdata"} - \file{data_brain.nii.gz} is overlayed on line map.
 }
 
 \references{

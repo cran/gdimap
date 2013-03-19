@@ -10,7 +10,8 @@
 }
 
 \usage{
-synthfiberss2z(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL, logplot=TRUE, pos=c(0,0,0), showglyph=FALSE, new=TRUE)
+synthfiberss2z(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL,
+ logplot=TRUE, pos=c(0,0,0), showglyph=FALSE, new=TRUE)
 }
 
 \arguments{

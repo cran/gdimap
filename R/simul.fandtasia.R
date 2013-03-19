@@ -9,7 +9,7 @@ function(gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showglyph=FALSE,
   sfield <- readniidata(fbase=savedir, filename="simfield.nii.gz")
   ## Estimate ODFs
   fielddata <- sfield@.Data
-  odfs <- field.gqi(g0, fielddata, b=b, mddratio=1.2)
+  odfs <- field.gqi(g0, fielddata, b=b, mddratio=1.24)
   ## with vomMF clustering
   plotodfvmf(s2, odfs, threshold=threshold, showglyph=showglyph)
   if(snapshot) {
@@ -23,7 +23,7 @@ function(gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showglyph=FALSE,
 ##----------------------
 
 field.gqi <-
-function(grad, fielddata, b=4000, mddratio=1.2)
+function(grad, fielddata, b=4000, mddratio=1.24)
 {
   cat("Estimating field odfs ...\n")
   sz <- dim(fielddata)[4]-1

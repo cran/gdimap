@@ -1,5 +1,5 @@
-\name{dsi203_bmax4000.Rd}
-\alias{dsi203_bmax4000.Rd}
+\name{dsi203_bmax4000}
+\alias{dsi203_bmax4000}
 \docType{data}
 \title{DSI b-Table File}
 \description{

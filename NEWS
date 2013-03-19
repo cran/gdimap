@@ -1,0 +1,6 @@
+Changes in gdimap version 0.0-3
+
+  o	Format of "data.bvec" file was modified to be specified as a matrix
+    of nx3 values. Functions were modified accordingly.
+
+  o Minor corrections in examples.

@@ -3,7 +3,7 @@
 \docType{data}
 \title{Generalized Fractional Anisotropy (GFA) File}
 \description{
-The \file{data_gfa_gqi} summarizes anisotropic properties of the Orientation Distribution Function (ODF) of the fibres using the generalized fractional anisotropy (GFA) metric (see details on package \pkg{gdimap}).
+The \file{data_gfa_gqi} summarizes anisotropic properties of the Orientation Distribution Function (ODF) of the fibres using the generalized fractional anisotropy (GFA) metric.
 }
 
 \format{

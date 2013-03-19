@@ -114,7 +114,7 @@ function(fbase=NULL, filename)
 	else {
 		file <- paste(fbase,"/",filename, sep="")
 	}
-  invisible(read.table(file))
+  invisible(as.matrix(read.table(file)))
 }
 
 #-------------------------

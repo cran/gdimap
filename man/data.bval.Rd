@@ -7,12 +7,11 @@ b-table file for the 3D-DSI sampling scheme used in the DICOM data acquisition p
 }
 
 \format{
-	The file \file{data.nii.gz} is in gzipped NIfTI format.
-	The R-package \pkg{oro.nifti} is required to read NIfTI files.
+	\file{data.bval} is in ASCII format
 }
 
 \details{
-The data set \file{data.nii.gz} is a DICOM data set provided by the \emph{Advanced Biomedical MRI Lab, National Taiwan University Hospital}, under the designation \file{DSI 203-point 3mm}.
+The data set \file{data.nii.gz} is NIfTI-converted from the DICOM data set provided by the \emph{Advanced Biomedical MRI Lab, National Taiwan University Hospital}, under the designation \file{DSI 203-point 3mm}.
 This b-table has 203 points uniformly distributed on a 3D grid limited to the volume of the unit sphere.
 The b-values range from 0 to 4000.
 }

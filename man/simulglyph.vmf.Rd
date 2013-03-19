@@ -10,8 +10,9 @@ ODF profiles and fibre directions are estimated by relying on von Mises-Fisher (
 }
 
 \usage{
-simulglyph.vmf(s2grid=NULL, angles=c(20,100), depth=3, b=3000, mddratio=1.2, sigma=NULL,
- threshold=0.4, snapshot=FALSE, savedir=tempdir(), pngfig="glyph1", showglyph=TRUE)
+simulglyph.vmf(s2grid=NULL, angles=c(20,100), depth=3, b=3000,
+ mddratio=1.24, sigma=NULL, threshold=0.4, snapshot=FALSE,
+ savedir=tempdir(), pngfig="glyph1", showglyph=TRUE)
 }
 
 \arguments{
@@ -19,7 +20,7 @@ simulglyph.vmf(s2grid=NULL, angles=c(20,100), depth=3, b=3000, mddratio=1.2, sig
 \item{angles}{ angles in degrees of fibres to be used in simulation (default: two fibres with angles \code{c(20,100)}). }
 \item{depth}{ sampling densities on the hemisphere used in simulation (default N=321; depth=3). }
 \item{b}{ strength of the magnetic diffusion gradient (default b-value=3000). }
-\item{mddratio}{ GQI parameter (default: 1.2). }
+\item{mddratio}{ GQI parameter (default: 1.24). }
 \item{sigma}{ Rician noise level used in simulation; (default \code{NULL}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{snapshot}{ logical variable controlling line-map snapshots (default: \code{FALSE}). }

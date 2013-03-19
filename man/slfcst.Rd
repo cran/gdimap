@@ -6,7 +6,8 @@
 \description{
 The \file{slfcst.nii.gz} is a region-of-interest (ROI) file that was formed by extracting the superior longitudinal fasciculus (SLF) and corticospinal tract (CST) regions from the main data diffusion set \file{data.nii.gz}.
 
-For reasons of limited CRAN storage space, a trimmed down data set with just 4 coronal slices was selected. Coronal slices {29-32} were extracted from the original data set. Hence, the argument \code{bview="coronal"} is used in the examples, and the range of coronal slices range from 1 to 4. User specified complete data sets may be used without restrictions. 
+For reasons of limited CRAN storage space, a trimmed down data set with just 4 coronal slices was selected. Coronal slices (29:32) were extracted from the original data set. Hence, the argument \code{bview="coronal"} is used in the examples, and the range of coronal slices is (1:4). User specified complete data sets may be used without restrictions. 
+
 }
 
 \format{

@@ -5,7 +5,7 @@
 \description{
 The data set \file{data.nii.gz} is a gzipped NIfTI data set converted from the original DICOM data set provided by the \emph{Advanced Biomedical MRI Lab, National Taiwan University Hospital}, under the designation \file{DSI 203-point 3mm}.
 
-For reasons of limited CRAN storage space, a trimmed down data set with just 4 coronal slices was selected. Coronal slices {29-32} were extracted from the original data set. Hence, the argument \code{bview="coronal"} is used in the examples, and the range of coronal slices range from 1 to 4. User specified complete data sets may be used without restrictions. 
+For reasons of limited CRAN storage space, a trimmed down data set with just 4 coronal slices was selected. Coronal slices (29:32) were extracted from the original data set. Hence, the argument \code{bview="coronal"} is used in the examples, and the range of coronal slices is (1:4). User specified complete data sets may be used without restrictions. 
 }
 
 \format{
@@ -38,7 +38,7 @@ NITRC repository,  \url{http://www.nitrc.org}.
   \code{\link{data_V1_gqi}},
   \code{\link{data_V2_gqi}},
   \code{\link{data_gfa_gqi}},
-  \code{\link{dsi203_bmax4000.Rd}}
+  \code{\link{dsi203_bmax4000}}
 }
 
 

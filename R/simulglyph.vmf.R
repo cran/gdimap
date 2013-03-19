@@ -1,6 +1,5 @@
-
 simulglyph.vmf <-
-function(s2grid=NULL, angles=c(20,100), depth=3, b=3000, mddratio=1.2, sigma=NULL, threshold=0.4, snapshot=FALSE, savedir=tempdir(), pngfig="glyph1", showglyph=TRUE)
+function(s2grid=NULL, angles=c(20,100), depth=3, b=3000, mddratio=1.24, sigma=NULL, threshold=0.4, snapshot=FALSE, savedir=tempdir(), pngfig="glyph1", showglyph=TRUE)
 {
   if(is.null(s2grid)) {
     ## S2 grid

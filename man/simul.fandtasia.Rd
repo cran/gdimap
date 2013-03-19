@@ -11,7 +11,8 @@ ODF profiles and fibre directions are estimated by relying on von Mises-Fisher (
 
 \usage{
 simul.fandtasia(gridsz=32, b=4000, depth=3, sigma=0.01,
- threshold=0.5, showglyph=FALSE, savedir=tempdir(), snapshot=FALSE, pngfig="fandtasia")
+ threshold=0.5, showglyph=FALSE, savedir=tempdir(), snapshot=FALSE,
+ pngfig="fandtasia")
 }
 
 \arguments{

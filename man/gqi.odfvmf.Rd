@@ -14,8 +14,9 @@ This statistical estimation procedure is used to resolve crossing fibre mappings
 }
 
 \usage{
-gqi.odfvmf(run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, mddratio=1.2, depth=3, btoption=2, 
-threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir())
+gqi.odfvmf(run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, mddratio=1.24,
+ depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal",
+ savedir=tempdir())
 }
 
 \arguments{
@@ -23,11 +24,11 @@ threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir())
 \item{fbase}{ Directory where the required input data files are located. } 
 \item{rg}{ range of slices to process; default option \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
-\item{mddratio}{ GQI parameter (default: 1.2). }
+\item{mddratio}{ GQI parameter (default: 1.24). }
 \item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
 \item{btoption}{ b-table selection between \file{dsi203_bmax4000.txt} (\code{btoption=1}), and the 3D-DSI grid b-table extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
-\item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"axial"}). }
+\item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 }
@@ -55,10 +56,15 @@ These files may be used to perform white matter fibre tractography.
 }
 
 \value{
-\code{gqi.odfvmf} outputs three data files in NIfTI format named \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz}, and \file{data_gfa_gqi.nii.gz}. The first and second main fibre directions per voxel are contained in \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz}, respectively. The file \file{data_gfa_gqi.nii.gz} contains the GFA metric per voxel.
+\code{gqi.odfvmf} outputs three data files in NIfTI format named \cr
+ \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz}, and
+ \file{data_gfa_gqi.nii.gz}.
+ The first and second main fibre directions per voxel are contained in \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz}, respectively. The file \file{data_gfa_gqi.nii.gz} contains the GFA metric per voxel.
 }
 
 \note{
+For reasons of limited CRAN storage space, a trimmed down data set with just 4 coronal slices was selected. Coronal slices (29:32) were extracted from the original data set. Hence, the argument \code{bview="coronal"} is used in the examples, and the range of coronal slices is (1:4). User specified complete data sets may be used without restrictions. 
+
 Commonly used acronyms:\cr
 GFA - Generalized Fractional Anisotropy\cr
 ODF - Orientation Distribution Function\cr
@@ -112,13 +118,13 @@ Jenkinson, M., Beckmann, C. F., Behrens, T. E., Woolrich, M. W., and Smith, S. M
   \code{\link{data_brain}},
   \code{\link{data.bval}},
   \code{\link{data.bvec}},
-  \code{\link{dsi203_bmax4000.Rd}}
+  \code{\link{dsi203_bmax4000}}
 }
 
 \examples{
 \dontrun{
     ## Generate ODF volumes (GQI volume processing)
-    ## for a range of slices using von Mises clustering
+    ## for a range of slices using von Mises-Fisher clustering
     gqi.odfvmf(depth=2, showglyph=FALSE, threshold=0.5, savedir=tempdir())
     ## RGB maps for range of slices processed by gqi.odfvmf()
     rgbvolmap(fbase=tempdir(), rg=c(1,4), bview="coronal")

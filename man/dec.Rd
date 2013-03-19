@@ -22,8 +22,7 @@ The DEC encoding is the standard colouring scheme to represent the orientation o
 }
 
 \references{
-Pajevic, S., and Pierpaoli, C. Color Schemes to Represent the Orien-
-tation of Anisotropic Tissues From Diffusion Tensor Data: Application to
+Pajevic, S., and Pierpaoli, C. Color Schemes to Represent the Orientation of Anisotropic Tissues From Diffusion Tensor Data: Application to
 White Matter Fiber Tract Mapping in the Human Brain. Magnetic Resonance in Medicine 42 (1999), 526-540.
 }
 

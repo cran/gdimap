@@ -13,7 +13,7 @@ The \file{data_V1_gqi} contains the first principal directions of the Orientatio
 }
 
 \details{
-The file \file{data_V1_gqi} was produced by the function \code{gqi.odfvmf}  (using the default arguments) included in \pkg{gdimap}.
+The file \file{data_V1_gqi} was produced by the function \code{gqi.odfvmf}  (using the default arguments).
 Functions for visualization of RGB maps and line-maps are included in \pkg{gdimap}.
 The output files \file{data_V1_gqi.nii.gz} and \file{data_gfa_gqi.nii.gz} are compatible with the "FSL/fslview" tool for RGB map and line map visualization.
 

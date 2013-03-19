@@ -7,7 +7,7 @@ function(ang=60, b=3000, sigma=NULL, threshold=0.5)
   ## field simulation 
   field <- myglyph.synthsimul(g0, ang=ang, b=b, sigma=sigma)
   ## Estimate ODFs
-  odfs <- fieldtestodf.gqi(g0, field,  b=b, mddratio=1.2)
+  odfs <- fieldtestodf.gqi(g0, field,  b=b, mddratio=1.24)
   ## Visualize grid of glyphs with color
   plotodfvxgrid(g0, field=field, odfsdata=odfs)
   ## Using movMF (von Mises for peak detection)
@@ -109,7 +109,7 @@ function(ang=90)
 #--------------------------
 
 fieldtestodf.gqi <-
-function(grad, field, b=3000, mddratio=1.2)
+function(grad, field, b=3000, mddratio=1.24)
 {
   cat("estimating field odfs ...\n")
   sfield <- field$S
