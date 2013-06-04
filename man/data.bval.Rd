@@ -3,7 +3,7 @@
 \docType{data}
 \title{b-Table File}
 \description{
-b-table file for the 3D-DSI sampling scheme used in the DICOM data acquisition process for file \file{data.nii.gz}.
+b-values file for the 3D-DSI sampling scheme used in the DICOM data acquisition process for file \file{data.nii.gz}.
 }
 
 \format{
@@ -11,9 +11,9 @@ b-table file for the 3D-DSI sampling scheme used in the DICOM data acquisition p
 }
 
 \details{
+The b-values in \file{data.bval} range from 0 to 4000.
 The data set \file{data.nii.gz} is NIfTI-converted from the DICOM data set provided by the \emph{Advanced Biomedical MRI Lab, National Taiwan University Hospital}, under the designation \file{DSI 203-point 3mm}.
-This b-table has 203 points uniformly distributed on a 3D grid limited to the volume of the unit sphere.
-The b-values range from 0 to 4000.
+The corresponding file \file{data.bvec} has 203 points uniformly distributed on a 3D (DSI) grid limited to the volume of the unit sphere.
 }
 
 

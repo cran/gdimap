@@ -29,7 +29,7 @@ rgbvolmap(fbase=NULL, rg=c(1,1),  bview="coronal",
 The standard convention for colour assignment when combining GFA values with directional information is adopted (see Pajevic, et.al.; Jellison et.al.).
 Colour hue indicates direction as follows: red, left-right; green, antero-posterior; blue, superior-inferior.
 Brightness is proportional to GFA.
-The output files \file{data_V1_gqi.nii.gz} and \file{data_gfa_gqi.nii.gz} are compatible with the "FSL/fslview" tool for RGB map and line map visualization.
+The output files \file{data_V1.nii.gz} and \file{data_gfa.nii.gz} are compatible with the "FSL/fslview" tool for RGB map and line map visualization.
 }
 
 \note{

@@ -1,4 +1,3 @@
-
 rgbvolmap <-
 function(fbase=NULL, rg=c(1,1), bview="coronal",
  texture=FALSE, transparent=FALSE,  saveplot=FALSE,
@@ -7,9 +6,9 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
   bviews <- c("sagittal", "coronal", "axial")
   kv <- grep(bview, bviews)
   ##----------------------------
-  img.nifti  <- readniidata(fbase=fbase, filename="data_gfa_gqi.nii.gz")
+  img.nifti  <- readniidata(fbase=fbase, filename="data_gfa.nii.gz")
   gfavol <- img.nifti@.Data
-  v1.nifti  <- readniidata(fbase=fbase, filename="data_V1_gqi.nii.gz")
+  v1.nifti  <- readniidata(fbase=fbase, filename="data_V1.nii.gz")
   V1 <- v1.nifti@.Data
   ##----------------------------
   d <- dim(gfavol)
@@ -26,11 +25,6 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
     rg <- c(first,last)
   }
   else { first <- rg[1]; last <- rg[2] }
-  ## Initialize Display
-  if(transparent)
-    x11()
-  else
-    x11(bg="black")
   displist <- vector("list",diff(rg)+1)
   j <- 0
   for (sl in (first:last)) {
@@ -72,19 +66,32 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
       zpr[ mask == 0  ] <- "transparent"
     zpr2 <- array(0, dim=c(nc,nr))
     if(texture){ ## for use as texture
-      nm <- max(nc,nr)
-      zpr2 <- array(0, dim=c(nm,nm)) # using square texture
+      #nm <- max(nc,nr)
+      #zpr2 <- array(0, dim=c(nm,nm)) # using square texture
       zpr2[nc:1, ] <- zpr[ ,nc:1] 
       saveplot <- TRUE
+      ww <- 7; hh <- 7
     }
     else {
       zpr2 <- array(0, dim=c(nc,nr))
       zpr2[1:nc, ] <- zpr[ ,nc:1]
+      mm <- range(nr,nc)
+      # ww <- 7; hh <- 7*mm[1]/mm[2]
+      nn <- as.integer(sqrt(last-first)+1)
+      w <- 10; h <- 10
+      # ww <- 7*1/nn; hh <- 7*mm[1]/(mm[2] * nn)
+      ww <- w*1/nn; hh <- h*mm[1]/(mm[2] * nn)
     }
-    r1 <- rasterGrob(zpr2, interpolate=TRUE)
+    r1 <- rasterGrob(zpr2, interpolate=TRUE, width=ww, height=hh,
+      default.units="inches")
     displist[j] <- list(r1)
   }
   cat("\n")
+  ## Initialize Display
+  if(transparent)
+    x11()
+  else
+    x11(bg="black")
   ## display gmaps 
   do.call(grid.arrange,  displist) 
   if(saveplot) {

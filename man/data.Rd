@@ -31,14 +31,13 @@ NITRC repository,  \url{http://www.nitrc.org}.
 }
 
 \seealso{
-  \code{\link{data_brain}},
   \code{\link{data_brain_mask}},
   \code{\link{data.bval}},
   \code{\link{data.bvec}},
-  \code{\link{data_V1_gqi}},
-  \code{\link{data_V2_gqi}},
-  \code{\link{data_gfa_gqi}},
-  \code{\link{dsi203_bmax4000}}
+  \code{\link{data_V1}},
+  \code{\link{data_V2}},
+  \code{\link{data_gfa}},
+  \code{\link{btable}}
 }
 
 

@@ -1,5 +1,5 @@
 simul.fandtasia <-
-function(gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showglyph=FALSE, savedir=tempdir(), snapshot=FALSE, pngfig="fandtasia")
+function(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showglyph=FALSE, savedir=tempdir(), snapshot=FALSE, pngfig="fandtasia")
 {
   ## S2 shell grid
   s2 <- s2tessel.zorder(depth=depth)
@@ -9,7 +9,7 @@ function(gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showglyph=FALSE,
   sfield <- readniidata(fbase=savedir, filename="simfield.nii.gz")
   ## Estimate ODFs
   fielddata <- sfield@.Data
-  odfs <- field.gqi(g0, fielddata, b=b, mddratio=1.24)
+  odfs <- field.gqi(gdi=gdi, g0, fielddata, b=b, lambda=NULL)
   ## with vomMF clustering
   plotodfvmf(s2, odfs, threshold=threshold, showglyph=showglyph)
   if(snapshot) {
@@ -23,15 +23,25 @@ function(gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showglyph=FALSE,
 ##----------------------
 
 field.gqi <-
-function(grad, fielddata, b=4000, mddratio=1.24)
+function(gdi="gqi", grad, fielddata, b=4000, lambda=NULL)
 {
-  cat("Estimating field odfs ...\n")
+  cat("estimating field odfs ...\n")
+  gdimethods <- c("gqi", "gqi2")
+  gdimethod <- match(gdi, gdimethods)
   sz <- dim(fielddata)[4]-1
   dv <- dim(fielddata)
   odfs <- array(0, dim=c(dv[1:3], dv[4]-1))
   bn <- rep(b, dim(grad)[1])
   btable <- cbind(bn, grad)
-  q2odf <- gqifn(odfvert=grad, btable=btable, mddratio=mddratio)
+  ##-----------------------------
+  ## "gdimethod" process
+  cat("Estimating slice odfs ...\n")
+  switch(gdimethod,
+      q2odf <- gqifn(odfvert=grad, btable=btable,
+                     lambda=lambda),
+      q2odf <- gqifn2(odfvert=grad, btable=btable,
+                     lambda=lambda) )
+  ##-----------------------------
   for(i in 1:dv[1]) { 
     for(j in 1:dv[2]) {
        S <- fielddata[i,j,1,]

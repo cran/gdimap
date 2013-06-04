@@ -1,6 +1,21 @@
+Changes in gdimap version 0.1-1
+
+  o ODF reconstructions now supports two GQI methods (QBI and QBI2),
+    and one QBI method.
+  o New functions for fibre orientation estimation and visualization.
+  o Simulations via 'simulglyph.vmf' now supports GQI, GQI2, and QBI.
+  o The masked data set 'data_brain' has been removed since it is not
+    used directly.
+  o Allow fiber simulations with different volume fractions
+  o Hacked geometry::surf.tri() to supress warnings
+  o Filename 'dsi203_bmax4000.txt' substituted by 'btable.txt'
+  o Format of file 'data.bvec' modified to 'scan' format as produced by
+    the 'dcm2nii' tool, and compatible with the formats used in the
+    'DSI_Studio' and 'Dipy' toolboxes.
+  o Documentation has been updated.
+
 Changes in gdimap version 0.0-3
 
   o	Format of "data.bvec" file was modified to be specified as a matrix
-    of nx3 values. Functions were modified accordingly.
-
+    of size nx3. Functions were modified accordingly.
   o Minor corrections in examples.

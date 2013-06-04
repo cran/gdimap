@@ -1,36 +1,39 @@
-## GQI volume processing
+## SPH volume processing
 ## fslview-compatible gfa-map and V1 volumes 
 
-gqi.odfpeaks <-
-function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir())
+sph.odfpeaks <-
+function(fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir(), order=4)
 {
-  gdimethods <- c("gqi", "gqi2")
-  gdimethod <- match(gdi, gdimethods)
   bviews <- c("sagittal", "coronal", "axial")
   kv <- match(bview, bviews)
 	stopifnot(is.na(kv) != TRUE)
-  ##---------
-  ## generate S2 grid
-  s2 <- s2tessel.zorder(depth=depth, viewgrid=FALSE)
-  odfvertices <- s2$pc
-  tcsurf <- s2$tcsurf
   ##-----------
   ## Read data
   testfilexist(fbase=fbase, btoption=btoption)
   if(btoption == 1) { ## Option 1: S2-shell (DSI 203-point 3mm)
-    btable <- as.matrix(readtable(fbase=fbase, filename="btable.txt"))
+    btable <- as.matrix(
+      readtable(fbase=fbase, filename="btable.txt"))
   }
   else {
-    if(btoption == 2) {
-      ## Option 2: using a 3D-dsi grid 
-      bval <- scantable(fbase=fbase, filename="data.bval")
-      # bvec <- readtable(fbase=fbase, filename="data.bvec")
-      bvec <- scantable(fbase=fbase, filename="data.bvec")
-      bvec <- matrix(bvec, ncol=3)
-      btable <- cbind(bval,bvec)
+    if(btoption == 2) { 
+      if(is.null(fbase)) {
+				cat("Data files 'data.bval' and 'data.bvec' unspecified !\n") 
+				stop()
+      } else {
+	      bval <- scantable(fbase=fbase, filename="data.bval")
+ 	    	# bvec <- readtable(fbase=fbase, filename="data.bvec")
+        bvec <- scantable(fbase=fbase, filename="data.bvec")
+        bvec <- matrix(bvec, ncol=3)
+ 	    	btable <- cbind(bval,bvec)
+			}
     }
     else stop()
   }
+	b0 <- which(btable[,1] == 0)
+	odfvertices <- btable[-b0,2:4]
+	tc <-  delaunayn(odfvertices)
+	tcsurf <- t( surf.tri(odfvertices,tc))	
+  ##----------------------------
   cat("Reading data ...")
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
   volimg <- img.nifti@.Data  
@@ -50,13 +53,20 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
   else { first <- rg[1]; last <- rg[2] }
   cat("\n")
   ##-----------------------------
-  ## "gdimethod" process
-  cat("Estimating slice odfs ...\n")
-  switch(gdimethod,
-      q2odf <- gqifn(odfvert=odfvertices, btable=btable,
-                     lambda=lambda),
-      q2odf <- gqifn2(odfvert=odfvertices, btable=btable,
-                     lambda=lambda) )
+	## SPH process preparation
+	gradient <- t(odfvertices)
+	z <- design.spheven(order,gradient,lambda=0.006)
+	plz <- plzero(order)/2/pi
+	ngrad <- dim(gradient)[2]
+	ngrad0 <- ngrad
+	lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
+  while(length(lord)>=ngrad0){
+	  order <- order-2
+		lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
+ 		cat("Reduced order of spherical harmonics to",order,"\n")
+ 	}
+	cat("Using",length(lord),"spherical harmonics\n")
+	L <- -diag(lord*(lord+1)) 
   ##-----------------------------
   ## store 1st vector directions for each non-thresholded voxel 
   ## v1list: vector of lists
@@ -70,11 +80,19 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
       swap=swap, bview=bview)
     ymaskdata <- premask(slicedata)
     if(ymaskdata$empty) next # empty mask
-    #-------------------
-    ## odfs
-    odfs <- q2odf %*% (ymaskdata$yn)
-    odfs <- apply(odfs, 2, norm01) ## normalize 
-    #-------------------
+		maxslicedata <- max(slicedata$niislicets) ##????
+		S <- ymaskdata$yn[-b0,]
+		S <- S / maxslicedata
+		s0 <- 1
+		si <- apply(S, 2, datatrans, s0)
+		sicoef <- z$matrix%*% si
+		sphcoef <- plz%*%L%*%sicoef
+		coef0 <- sphcoef[1,]
+		sphcoef[1,] <- 1/2/sqrt(pi)
+		sphcoef[-1,] <- sphcoef[-1,]/8/pi
+		## odfs
+		odfs <- t(z$design) %*% sphcoef
+		odfs <- apply(odfs, 2, norm01) 
     ## gfas
     gfas <- apply(odfs, 2, genfa)
     gfas <- norm01(gfas) ##??
@@ -96,11 +114,13 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
       ## find peaks
       odf <- odf[1:(length(odf)/2)] # use half sized odf in findpeak
       pk <- findpeak(odf, t(odfvertices), tcsurf)
+
+			if(length(pk$peaks) < 1) next 
       ## don't store eigenvector for cross-fiber voxels 
-      if(length(pk$peaks) < 1 | (length(pk$peaks) > 2)) {
-        nullvectors <- c(nullvectors, m)
-        next
-      }
+##      if(length(pk$peaks) < 1 | (length(pk$peaks) > 2)) {
+##        nullvectors <- c(nullvectors, m)
+##        next
+##      }
       v1perslice[m,] <- pk$pcoords[,1]
       ## optional glyph visualization
       if(showglyph) {

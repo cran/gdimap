@@ -31,13 +31,31 @@ norm01 <- function(x) {
 maxone <- function(x) { return(which(x == max(x))[1]) }
 
 #----------------------------------------------
+# GQI-standard
 gqifn <-
-function(odfvert, btable, mddratio)
+function(odfvert, btable, lambda=NULL)
 {
+  if(is.null(lambda)) lambda <- 1.24
 	lvalues <- sqrt(btable[,1]*0.01506)
 	bvector <- btable[,2:4]*repmat(lvalues,1,3)
-	q0 <- (odfvert %*% t(bvector) * mddratio) / pi 
+	q0 <- (odfvert %*% t(bvector) * lambda) / pi 
 	invisible(sinc(q0))
+}
+
+# GQI2
+gqifn2 <-
+function(odfvert, btable, lambda=NULL)
+{
+	sqradial <- function(x, tol=0.01) {
+    result <- (2 * x * cos(x) + (x * x - 2) * sin(x)) / (x ** 3)
+    x.nearzero = (x < tol) & (x > -tol)
+    ifelse(x.nearzero, 1./3, result)
+	}
+  if(is.null(lambda)) lambda <- 3
+	lvalues <- sqrt(btable[,1]*0.01506)
+	bvector <- btable[,2:4]*repmat(lvalues,1,3)
+	q0 <- (odfvert %*% t(bvector) * lambda) / pi 
+	invisible(sqradial(q0))
 }
 
 #----------------------------------------------

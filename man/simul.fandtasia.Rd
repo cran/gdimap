@@ -10,12 +10,13 @@ ODF profiles and fibre directions are estimated by relying on von Mises-Fisher (
 }
 
 \usage{
-simul.fandtasia(gridsz=32, b=4000, depth=3, sigma=0.01,
+simul.fandtasia(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01,
  threshold=0.5, showglyph=FALSE, savedir=tempdir(), snapshot=FALSE,
  pngfig="fandtasia")
 }
 
 \arguments{
+\item{gdi}{ method of ODF reconstruction to use \code{c("gqi", "gqi2")} (default: \code{"gqi"}). }
 \item{gridsz}{ dimension of squared grid to use in simulation (default 32)}
 \item{b}{ strength of the magnetic diffusion gradient (default b-value=4000). }
 \item{depth}{ sampling densities on the hemisphere used in simulation (default N=321; depth=3). }
@@ -61,8 +62,10 @@ Barmpoutis, A. Tutorial on Diffusion Tensor MRI using Matlab. Electronic Edition
     ## simulation with a new generated field of profiles,
     ## of size 16x16 (for speed), with added noise 
     simul.fandtasia(gridsz=16, sigma=0.01)
+    simul.fandtasia(gdi="gqi2", gridsz=16, sigma=0.01)
     ## same as before, but showing crossing-fibre glyphs 
     simul.fandtasia(gridsz=16, sigma=0.01, showglyph=TRUE)
+    simul.fandtasia(gdi="gqi2", gridsz=16, sigma=0.01, showglyph=TRUE)
     ## using a 32x32 data field as in the original reference
     ## Warning: time-consuming example
     simul.fandtasia()

@@ -1,13 +1,13 @@
 simul.simplefield <-
-function(ang=60, b=3000, sigma=NULL, threshold=0.5)
+function(gdi="gqi", ang=60, b=3000, sigma=NULL, threshold=0.5, logplot=TRUE)
 {
   ## S2 shell grid
   s2 <- s2tessel.zorder(depth=3, viewgrid=FALSE)
   g0 <- s2$pc
   ## field simulation 
-  field <- myglyph.synthsimul(g0, ang=ang, b=b, sigma=sigma)
+  field <- myglyph.synthsimul(g0, ang=ang, b=b, sigma=sigma, logplot=logplot)
   ## Estimate ODFs
-  odfs <- fieldtestodf.gqi(g0, field,  b=b, mddratio=1.24)
+  odfs <- fieldtestodf.gqi(gdi=gdi, g0, field,  b=b, lambda=NULL)
   ## Visualize grid of glyphs with color
   plotodfvxgrid(g0, field=field, odfsdata=odfs)
   ## Using movMF (von Mises for peak detection)
@@ -18,7 +18,7 @@ function(ang=60, b=3000, sigma=NULL, threshold=0.5)
 ##--------------------------
 
 myglyph.synthsimul <-
-function(g0, ang=60, b=3000, sigma=NULL)
+function(g0, ang=60, b=3000, sigma=NULL,  logplot=TRUE)
 {
   ng0 <- dim(g0)[1]
   stopifnot(ang <= 90)
@@ -40,21 +40,21 @@ function(g0, ang=60, b=3000, sigma=NULL)
       pos <- 2 * c(j,i,0)
       if(as[i,j] == 1) {
         sv <- synthfiberss2z(g0=g0, angles=0, b=b, sigma=sigma, pos=pos,
-          showglyph=TRUE, new=FALSE)
+          showglyph=TRUE, new=FALSE, logplot=logplot)
         k <- k+1
         S[k,] <- sv
       }
       else {
         if(as[i,j] == 3) {
           sv <- synthfiberss2z(g0=g0, angles=c(0,ang), b=b, sigma=sigma,
-          pos=pos, showglyph=TRUE, new=FALSE)
+          pos=pos, showglyph=TRUE, new=FALSE, logplot=logplot)
           k <- k+1
           S[k,] <- sv
         }
         else {
           if(as[i,j] == 2) {
             sv <- synthfiberss2z(g0=g0, angles=ang, b=b, sigma=sigma,
-              pos=pos, showglyph=TRUE, new=FALSE)
+              pos=pos, showglyph=TRUE, new=FALSE, logplot=logplot)
             k <- k+1
             S[k,] <- sv
           }
@@ -109,16 +109,26 @@ function(ang=90)
 #--------------------------
 
 fieldtestodf.gqi <-
-function(grad, field, b=3000, mddratio=1.24)
+function(gdi="gqi", grad, field, b=3000, lambda=NULL)
 {
   cat("estimating field odfs ...\n")
+  gdimethods <- c("gqi", "gqi2")
+  gdimethod <- match(gdi, gdimethods)
   sfield <- field$S
   mask <- field$mask
   dv <- dim(sfield)
   odfs <- matrix(0, dv[1], dv[2])
   bn <- rep(b, dim(grad)[1])
   btable <- cbind(bn, grad)
-  q2odf <- gqifn(odfvert=grad, btable=btable, mddratio=mddratio)
+  ##-----------------------------
+  ## "gdimethod" process
+  cat("Estimating slice odfs ...\n")
+  switch(gdimethod,
+      q2odf <- gqifn(odfvert=grad, btable=btable,
+                     lambda=lambda),
+      q2odf <- gqifn2(odfvert=grad, btable=btable,
+                     lambda=lambda) )
+  ##-----------------------------
   k <- 0
   for(i in 1:4) { 
     for(j in 1:4) {

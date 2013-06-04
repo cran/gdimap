@@ -1,34 +1,33 @@
-\name{gqi.odfpeaklines}
-\alias{gqi.odfpeaklines}
-\concept{GQI Reconstruction}
+\name{sph.odfpeaklines}
+\alias{sph.odfpeaklines}
+\concept{QBI Reconstruction}
 \concept{ODF Line-maps}
 \concept{Peak Detection}
 
-\title{Fibre Orientation Mapping Based on Local Peak Detection}
+\title{Fibre Orientation Mapping Based on Local Peak Detection with QBI Reconstruction}
 \description{
-\code{gqi.odfpeaklines} produces line-maps of ODF profiles for diffusion data slices.
+\code{sph.odfpeaklines} produces line-maps of ODF profiles for diffusion data slices using
+ a regularized spheric harmonics method for ODF reconstruction.
 }
 
 \usage{
-gqi.odfpeaklines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1),
- swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2,
- zfactor=5, showglyph=FALSE, snapshot=FALSE, showimage="linesgfa",
- bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white",
- texturefile=NA)
+sph.odfpeaklines(run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1), btoption=1,
+ swap=FALSE, threshold=0.4, kdir=2,  zfactor=5, showglyph=FALSE,
+ snapshot=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(),
+ pngfig="odfpeak", bg="white", texturefile=NA, order=4)
 }
 
 \arguments{
-\item{gdi}{ method of ODF reconstruction to use \code{c("gqi", "gqi2")} (default: \code{"gqi"}). }
 \item{run}{ logical variable enabling loading previously processed data (default: \code{TRUE}). } 
 \item{fbase}{ Directory where the required input data files are located. } 
-\item{roi}{ Region of Interest (ROI) to use as mask; default mask (\code{roi=NULL}) uses an all brain mask for the supplied data set. }
+\item{roi}{ Region of Interest (ROI) to use as mask; default mask (\code{roi=NULL}) uses an all brain mask
+ for the supplied data set. }
 \item{rg}{ range of slices to process (default option \code{rg=c(1,1)}); \code{rg=NULL} processes all slices. }
+\item{btoption}{ b-table selection using the included data file \file{btable.txt} (\code{btoption=1})
+ or user defined files. With \code{btoption=2}, diffusion data files \file{data.bvec} and \file{data.bval}
+ are selected for input, as used in single-shell QBI acquisition. In this case, the files must be provided by the user.
+ (Default \code{btoption=1}). }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
-\item{lambda}{ diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"}.
- By default the following default values are used when \code{lambda=NULL} is specified: 1.24 in "gqi", 3 in "gqi2". }
-\item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
-\item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}), and the 3D-DSI grid b-table
-  extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{kdir}{ maximum number of fibre directions to map (default: 2). }
 \item{zfactor}{ parameter controlling z-value in relief overlay maps (default: 5). }
@@ -39,28 +38,25 @@ gqi.odfpeaklines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1),
   \code{c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata")} \cr
   (see Details). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
-\item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
+\item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}). }
 \item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfpeak"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
 \item{texturefile}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NA} - no texture). }
+\item{order}{ parameter associated with the order of the spherical harmonics approximation (default: 4). }
 }
 
 \details{
 The identification of fibre directions is performed by extracting the local maxima of the reconstructed ODF, where this function surpasses a certain threshold.
-GQI (Yeh et.al. 2010) or GQI2 (Garyfallidis 2012) may be used for ODF reconstruction.
-\code{gqi.odfpeaklines} implements the standard method of fibre orientation detection.
+The Q-ball reconstruction method with Aganj regularization as implemented in \pkg{dti} (Tabelow and Polzehl) is used for orientation distribution function (ODF) reconstruction.
+\code{sph.odfpeaklines} implements the standard method of fibre orientation detection.
 Local maxima of the reconstructed ODF are located simply by selecting a large number of sampled points on the sphere and searching within a fixed radius neighbourhood. 
 For a single main fibre orientation the method performs well.
 However, for crossing fibres and other complex fibre configurations the peaks of the ODF profiles identified by the methods do not necessarily match the orientations of the distinct fibre populations.
-A more robust method is implemented in \code{gqi.odfvmflines}.
+A more robust method is implemented in \code{sph.odfvmflines}.
 
-Starting with the raw high angular resolution diffusion signal acquired on a grid of q-space, the ODF profile is reconstructed at each voxel, considering a sampling density of unit vectors on a unit S2 grid.
-Generalized q-Sampling Imaging (GQI) is used for orientation distribution function (ODF) reconstruction.
-Two b-tables defining the acquisition setup are specified.
-One is a b-table for a S2-like grid denoted by \file{btable.txt}. 
-The other is the b-table for the 3D-DSI sampling scheme used in the DICOM data acquisition.
-This b-table has 203 points uniformly distributed on a 3D grid limited to the volume of the unit sphere.
-In both tables, the b-values range from 0 to 4000.
+Starting with the raw high angular resolution diffusion signal acquired on a S2-shell of q-space, the ODF profile is reconstructed at each voxel, considering a sampling density of unit vectors on a unit S2 shell.
+Q-ball imaging (QBI) is used for orientation distribution function (ODF) reconstruction.
+For comparison with GQI, the b-table \file{btable.txt} has been used in the examples. This b-table has 203 points distributed on a S2-shell.
 
 Slice map display and overlay selection is controlled by specifying one the arguments\cr
  \code{c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata")} for \code{showimages}.
@@ -74,7 +70,7 @@ Slice map display and overlay selection is controlled by specifying one the argu
 }
 
 \value{
-\code{gqi.odfpeaklines} produces line-maps of ODF profiles for diffusion data slices.
+\code{sph.odfpeaklines} produces line-maps of ODF profiles for diffusion data slices.
 The line-maps may be overlayed with generalized fractional anisotropy (GFA) relief maps, diffusion data maps or ROI maps.
 The file \file{V1list.RData} containing the first main orientation directions for all processed voxels is output for further posterior orientation processing.
 }
@@ -82,9 +78,9 @@ The file \file{V1list.RData} containing the first main orientation directions fo
 \references{
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
-Yeh, F.-C., Wedeen, V. J., and Tseng, W.-Y. I. Generalized q-Sampling Imaging. \emph{IEEE Transactions on Medical Imaging} 29, 9 (2010), 1626-1635.
+Tuch D. S., Q-Ball Imaging, \emph{Magnetic Resonance in Medicine} 52 (2004), 1358-1372. 
 
-Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, University of Cambridge.
+Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1-0.
 }
 
 \author{ Adelino Ferreira da Silva, Universidade Nova de Lisboa,
@@ -92,9 +88,9 @@ Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, Unive
 }
 
 \seealso{
-  \code{\link{gqi.odfpeaks}},
-  \code{\link{gqi.odfvmf}},
-  \code{\link{gqi.odfvmflines}},
+  \code{\link{sph.odfpeaks}},
+  \code{\link{sph.odfvmf}},
+  \code{\link{sph.odfvmflines}},
   \code{\link{gqi.odfvxgrid}},
   \code{\link{s2tessel.zorder}},
   \code{\link{plotglyph}},
@@ -112,25 +108,17 @@ Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, Unive
 \dontrun{
   ##-------------
   ## Line map using ODF peak detection 
-  gqi.odfpeaklines(run=TRUE, showimage="lines")
-  ## idem with "gqi2"
-  gqi.odfpeaklines(gdi="gqi2", run=TRUE, showimage="lines")
+  sph.odfpeaklines(run=TRUE, showimage="lines")
   ## display line-map overlayed on GFA map 
-  gqi.odfpeaklines(run=FALSE, showimage="linesgfa")
-  ##-------------
-  ## generate slice texture first from default data file
-  rgbvolmap(texture=TRUE, transparent=TRUE)
-  ## Line map with RGB map overlay
-  gqi.odfpeaklines(run=TRUE, showimage="linesrgbmap",
-    texturefile=paste(tempdir(),"/rgbmap.png", sep=""))
+  sph.odfpeaklines(run=FALSE, showimage="linesgfa")
   ##-------------
   ## Show examples of reconstructed glyphs in ODF processing 
-  gqi.odfpeaklines(showimage="lines", showglyph=TRUE)
+  sph.odfpeaklines(showimage="lines", showglyph=TRUE)
   ##------------
   ## using a ROI overlay
-  gqi.odfpeaklines(roi="slfcst", showimage="linesgfa")
+  sph.odfpeaklines(roi="slfcst", showimage="linesgfa")
   ## using data overlay
-  gqi.odfpeaklines(showimage="linesdata")
+  sph.odfpeaklines(showimage="linesdata")
 }
 }
 

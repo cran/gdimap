@@ -1,34 +1,38 @@
 
-gqi.odfvxgrid <-
-function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5, snapshot=FALSE, showimage="glyphgfa", bview="coronal", savedir=tempdir(), pngfig="odfglyphs", bg="white", texturefile=NA)
+sph.odfvxgrid <-
+function(fbase=NULL, rg=c(1,1), swap=FALSE, btoption=1, threshold=0.4, kdir=4, zfactor=5, snapshot=FALSE, showimage="glyphgfa", bview="coronal", savedir=tempdir(), pngfig="odfglyphs", bg="white", texturefile=NA, order=4)
 {
-  gdimethods <- c("gqi", "gqi2")
-  gdimethod <- match(gdi, gdimethods)
   showimages <- c("none", "gfa", "glyph", "glyphgfa", "glyphrgbmap", "glyphdata") ## map types
   kshow <- match(showimage, showimages)
   bviews <- c("sagittal", "coronal", "axial")
   kv <- match(bview, bviews)
 	stopifnot(is.na(kv) != TRUE)
-  ##---------
-  # generate S2 grid
-  s2 <- s2tessel.zorder(depth=depth, viewgrid=FALSE)
-  odfvertices <- s2$pc
-  tcsurf <- s2$tcsurf
   ##-----------
+  ## Read data
   testfilexist(fbase=fbase, btoption=btoption)
   if(btoption == 1) { ## Option 1: S2-shell (DSI 203-point 3mm)
-    btable <- as.matrix(readtable(fbase=fbase, filename="btable.txt"))
+    btable <- as.matrix(
+      readtable(fbase=fbase, filename="btable.txt"))
   }
   else {
-    if(btoption == 2) { ## Option 2: 3D-dsi grid 
-      bval <- scantable(fbase=fbase, filename="data.bval")
-      # bvec <- readtable(fbase=fbase, filename="data.bvec")
-      bvec <- scantable(fbase=fbase, filename="data.bvec")
-      bvec <- matrix(bvec, ncol=3)
-      btable <- cbind(bval,bvec)
+    if(btoption == 2) { 
+      if(is.null(fbase)) {
+				cat("Data files 'data.bval' and 'data.bvec' unspecified !\n") 
+				stop()
+      } else {
+	      bval <- scantable(fbase=fbase, filename="data.bval")
+ 	    	# bvec <- readtable(fbase=fbase, filename="data.bvec")
+        bvec <- scantable(fbase=fbase, filename="data.bvec")
+        bvec <- matrix(bvec, ncol=3)
+ 	    	btable <- cbind(bval,bvec)
+			}
     }
     else stop()
   }
+	b0 <- which(btable[,1] == 0)
+	odfvertices <- btable[-b0,2:4]
+	tc <-  delaunayn(odfvertices)
+	tcsurf <- t( surf.tri(odfvertices,tc))	
   ##----------------------------
   cat("Reading data ...")
   img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
@@ -49,13 +53,20 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
   else { first <- rg[1]; last <- rg[2] }
   cat("\n")
   ##-----------------------------
-  ## "gdimethod" process
-  cat("Estimating slice odfs ...\n")
-  switch(gdimethod,
-      q2odf <- gqifn(odfvert=odfvertices, btable=btable,
-                     lambda=lambda),
-      q2odf <- gqifn2(odfvert=odfvertices, btable=btable,
-                     lambda=lambda) )
+	## SPH process preparation
+	gradient <- t(odfvertices)
+	z <- design.spheven(order,gradient,lambda=0.006)
+	plz <- plzero(order)/2/pi
+	ngrad <- dim(gradient)[2]
+	ngrad0 <- ngrad
+	lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
+  while(length(lord)>=ngrad0){
+	  order <- order-2
+		lord <- rep(seq(0,order,2),2*seq(0,order,2)+1)
+ 		cat("Reduced order of spherical harmonics to",order,"\n")
+ 	}
+	cat("Using",length(lord),"spherical harmonics\n")
+	L <- -diag(lord*(lord+1)) 
   ##-----------------------------
   ## RGB channels - normalize for rgb color
   dt2 <- dim(odfvertices[tcsurf,])[1]
@@ -64,9 +75,19 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
     slicedata <- read.slice(img=volimg, mask=volmask, slice=sl, swap=swap, bview=bview)
     ymaskdata <- premask(slicedata)
     if(ymaskdata$empty) next # empty mask
-    ## odfs
-    odfs <- q2odf %*% (ymaskdata$yn)
-    odfs <- apply(odfs, 2, norm01) ## normalize 
+		maxslicedata <- max(slicedata$niislicets) ##????
+		S <- ymaskdata$yn[-b0,]
+		S <- S / maxslicedata
+		s0 <- 1
+		si <- apply(S, 2, datatrans, s0)
+		sicoef <- z$matrix%*% si
+		sphcoef <- plz%*%L%*%sicoef
+		coef0 <- sphcoef[1,]
+		sphcoef[1,] <- 1/2/sqrt(pi)
+		sphcoef[-1,] <- sphcoef[-1,]/8/pi
+		## odfs
+		odfs <- t(z$design) %*% sphcoef
+		odfs <- apply(odfs, 2, norm01) 
     ## gfas
     gfas <- apply(odfs, 2, genfa)
     z2d <- ymaskdata$kin
@@ -127,13 +148,14 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
       if(kshow > 2) {
         ##---
         ## Display grid of glyphs
-        if(depth < 3) {
-        ## Plotting once all voxels: ! slow for large grid size and glyph dim !
-         cat("Plotting all voxels ...\n")
-         xx <- dt2*dm
-         rgl.triangles(grid[1:xx,1], grid[1:xx,2], grid[1:xx,3],
-           col=t(vcolors[1:dm,]))
-        } else { ## plot in chunks of chunk voxels
+        if(dm <= 512) {
+        # Plotting once all voxels: ! slow for large grid size and glyph dim !
+          cat("Plotting all voxels ...\n")
+          xx <- dt2*dm
+          rgl.triangles(grid[1:xx,1], grid[1:xx,2], grid[1:xx,3],
+            col=t(vcolors[1:dm,]))
+        } else {
+          ## plot in chunks of chunk voxels
           chunk <- 512
           cat("Plotting in chunks of ", chunk," voxels ...\n")
           mc <- ceiling(dm/chunk)
@@ -173,12 +195,12 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
         gfasurf3d(imgfa, zfactor=zfactor, alpha=0.6, texture=texture,
           texturefile=texturefile)
         rgl.viewpoint(theta=0, phi=15)
-        par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
-        rgl.bringtotop()
+         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
+          rgl.bringtotop()
       }
       if(snapshot) {
         ## sp <- tempfile(pattern="maplines", tmpdir=savedir, fileext=".png")
-        sp <- paste(savedir,"/",pngfig,"_sl",sl,".png", sep="")
+        sp <- paste(savedir,"/",pngfig,".png", sep="")
         readline("Prepare zoom for taking rgl.snapshot and press return ... ")
         rgl.snapshot(sp)
         cat("snapshot file", sp,"\n")

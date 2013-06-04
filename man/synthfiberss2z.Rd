@@ -11,7 +11,8 @@
 
 \usage{
 synthfiberss2z(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL,
- logplot=TRUE, pos=c(0,0,0), showglyph=FALSE, new=TRUE)
+ logplot=TRUE, pos=c(0,0,0), showglyph=FALSE, new=TRUE,
+ wi=c(0.5,0.5))
 }
 
 \arguments{
@@ -24,6 +25,7 @@ synthfiberss2z(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL,
 \item{pos}{ 3D positional coordinate (default \code{c(0,0,0)}). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyph (default: \code{TRUE}). }
 \item{new}{ starts a new figure if \code{TRUE} (default \code{new=TRUE}). }
+\item{wi}{ weight given to fiber's volume fraction (default for two fibers \code{c(0.5,0.5)}). }
 }
 
 \value{
@@ -73,10 +75,13 @@ Brain Data. Magnetic Resonance in Medicine 48 (2002), 331-340.
     ## synthetize diffusion signal (two crossing fibres)
     open3d()
     angles=c(20,100); b=3000
-    S <- synthfiberss2z(g0=g0, angles=angles, depth=3, b=1500)
+    S <- synthfiberss2z(g0=g0, angles=angles, depth=3, b=b)
+    ## synthetize signal with different volume fractions
+    S <- synthfiberss2z(g0=g0, angles=angles, depth=3, b=b,
+      wi=c(0.7,0.3))
     ## synthesize diffusion signal (three crossing fibres)
     angles <- c(0,60,120); b <- 3000
-    S <- synthfiberss2z(g0=g0, angles=angles, depth=3, b=1500)
+    S <- synthfiberss2z(g0=g0, angles=angles, depth=3, b=b)
 }
 }
 
