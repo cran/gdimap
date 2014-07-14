@@ -12,9 +12,8 @@
 \usage{
 gqi.odfpeaklines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1),
  swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2,
- zfactor=5, showglyph=FALSE, snapshot=FALSE, showimage="linesgfa",
- bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white",
- texture=NULL, ...)
+ zfactor=5, showglyph=FALSE, showimage="linesgfa", bview="coronal",
+ savedir=tempdir(), bg="white", texture=NULL, aniso=NULL, ...)
 }
 
 \arguments{
@@ -33,16 +32,15 @@ gqi.odfpeaklines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1),
 \item{kdir}{ maximum number of fibre directions to map (default: 2). }
 \item{zfactor}{ parameter controlling z-value in relief overlay maps (default: 5). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
-\item{snapshot}{ logical variable controlling line-map snapshots (default: \code{FALSE}). }
 \item{showimage}{ object controlling visualization of line-maps (default: \code{"linesgfa"}). \cr
   Alternative options are: \cr
   \code{c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata")} \cr
   (see Details). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
-\item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfpeak"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
 \item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
 \item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. } 
 }
 
@@ -132,7 +130,7 @@ Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, Unive
   gqi.odfpeaklines(showimage="lines", showglyph=TRUE)
   ##------------
   ## using a ROI overlay
-  gqi.odfpeaklines(roi="slfcst", showimage="linesgfa")
+  gqi.odfpeaklines(roi="slfcst.nii.gz", showimage="linesgfa")
   ## using data overlay
   gqi.odfpeaklines(showimage="linesdata")
 }

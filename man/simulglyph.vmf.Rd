@@ -12,9 +12,8 @@ ODF profiles and fibre directions are estimated by relying on von Mises-Fisher (
 
 \usage{
 simulglyph.vmf(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000,
- lambda=NULL, order=4, sigma=NULL, threshold=0.4, snapshot=FALSE,
- savedir=tempdir(), pngfig="glyph1", showglyph=TRUE, aniso=NULL,
- logplot=TRUE, wi=NULL)
+ lambda=NULL, order=4, sigma=NULL, clusterthr=0.6, savedir=tempdir(),
+ showglyph=TRUE, aniso=NULL, logplot=TRUE, wi=NULL, ...)
 }
 
 \arguments{
@@ -27,16 +26,16 @@ simulglyph.vmf(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000,
 \item{lambda}{ model parameter:  diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"};
  Aganj's regularization parameter in \code{gdi="sph"}. By default the following default values are used when
  \code{lambda=NULL} is specified: 1.24 in "gqi", 3 in "gqi2", and 0.006 in "sph". }
-\item{order}{ parameter associated with the oder of the order of the spherical harmonics approximation (default: 4). }
+\item{order}{ parameter associated with the order of the spherical harmonics approximation for
+ \code{gdi="sph"} (default: 4). }
 \item{sigma}{ Rician noise level used in simulation; (default \code{NULL}). }
-\item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
-\item{snapshot}{ logical variable controlling line-map snapshots (default: \code{FALSE}). }
+\item{clusterthr}{ thresholding orientations based on ODF values at each voxel for directional clustering (default: 0.6). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}). }
-\item{pngfig}{ base-name of the PNG files when \code{snapshot} is \code{TRUE} (default \code{"glyph1"}). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{TRUE}). }
-\item{aniso}{ anisotropic parameter to use in ODF visualization in the range "[0,1)" or \code{NULL}. }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
 \item{logplot}{ logical variable for selecting log-scale (default \code{TRUE}). }
 \item{wi}{ weight given to fiber's volume fraction. Example for two fibers with different weights \code{wi=c(0.7,0.3)} (default \code{NULL} gives equal weigth to all fibers.) }
+\item{...}{ optional specification of non-default control parameters as detailed in \code{movMF}. }
 }
 
 \value{
@@ -89,7 +88,9 @@ Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1
     simulglyph.vmf(angles=angles,b=b, gdi="gqi", logplot=FALSE)
     simulglyph.vmf(angles=angles,b=b, gdi="gqi2")
     simulglyph.vmf(angles=angles,b=b, gdi="gqi2", logplot=FALSE)
+    ## test reconstruction with aniso factor
     simulglyph.vmf(angles=angles,b=b, gdi="gqi", aniso=0.5)
+    ## Spherical harmonics model
     simulglyph.vmf(angles=angles,b=b, gdi="sph")
     simulglyph.vmf(angles=angles,b=b, gdi="sph", aniso=0.5)
     ## plot diffusion signal with "logplot=FALSE"
@@ -101,16 +102,18 @@ Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1
     simulglyph.vmf(angles=angles,b=b, gdi="gqi")
     simulglyph.vmf(angles=angles,b=b, gdi="sph")
     ## 2 direction, different volume fractions
-    simulglyph.vmf(angles=angles, b=b, wi=c(0.7, 0.3))
+    simulglyph.vmf(angles=angles, b=b, wi=c(0.7, 0.3), clusterthr=0.4)
     ## 2 direction, low croosing angle
     angles <- c(20,65); b <- 6000
     simulglyph.vmf(angles=angles,b=b)
     ## 3 directions
-    angles <- c(20,80,140)
+    angles <- c(20,80,140); b <- 3000
     simulglyph.vmf(angles=angles,b=b)
     # 3 directions
-    angles <- c(0,60,120)
+    angles <- c(0,60,120); b <- 3000
     simulglyph.vmf(angles=angles,b=b)
+    # 3 directions, different weights
+    simulglyph.vmf(angles=angles,b=b, wi=c(0.25,0.25,0.5), clusterthr=0.4)
     ##------------------
     ## noisy simulations and vMF estimation by GQI and QBI
     b <- 3000; sigma <- 0.033
@@ -129,6 +132,19 @@ Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1
     # 3 directions
     angles <- c(0,60,120)
     simulglyph.vmf(angles=angles,b=b, sigma=sigma)
+    ##------------------
+    ## speeded up approximations: hardmax and common kappa
+    ## 2 direction, low croosing angle
+    b <- 4000; angles <- c(20,65) 
+    simulglyph.vmf(angles=angles,b=b, clusterthr=0.4,
+      E="hardmax", kappa = list(common = TRUE))
+    ## 3 directions, different weights
+    b <- 6000; angles <- c(0,60,120)
+    simulglyph.vmf(angles=angles,b=b, wi=c(0.25,0.25,0.5),
+      clusterthr=0.4, E="hardmax", kappa = list(common = TRUE))
+    ## hardmax; numeric kappa
+    simulglyph.vmf(angles=angles,b=b, wi=c(0.25,0.25,0.5), 
+      clusterthr=0.4, E="hardmax", kappa = 40)
 }
 }
 

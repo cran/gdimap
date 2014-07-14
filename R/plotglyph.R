@@ -1,5 +1,5 @@
 plotglyph <-
-function(odf, grad, pk, kdir=4, vmfglyph=TRUE, pos=c(0,0,0))
+function(odf, grad, pk, kdir=6, vmfglyph=TRUE, pos=c(0,0,0))
 {
   sz <- length(odf)
   pc0 <- grad
@@ -39,7 +39,7 @@ function(odf, grad, pk, kdir=4, vmfglyph=TRUE, pos=c(0,0,0))
   v <- matrix(0, nrow=2*na, ncol=3)
   vpos <- matrix(rep(pos, 2*na), byrow=TRUE, ncol=3)
   if(vmfglyph) {
-    pcoords <- pk$pcoords/(1.4*max(pk$pcoords))
+    pcoords <- pk$pcoords
     v[(1:na)*2, ] <- t(pcoords[,1:na])
   }
   else { # for fpeak glyphs

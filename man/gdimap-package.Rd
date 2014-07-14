@@ -10,8 +10,8 @@ Generalized Diffusion Magnetic Resonance Imaging
 The package implements algorithms to estimate and visualize the orientation of neuronal pathways in model-free methods (q-space imaging methods).
 For fibre orientation estimation based on mixtures of von Mises-Fischer (vMF) distributions see \code{\link{gqi.odfvmflines}}, \code{\link{gqi.odfvmf}}, \code{\link{sph.odfvmflines}}, and \code{\link{sph.odfvmf}}.
 For fibre orientation estimation based on local peak detection procedures see \code{\link{gqi.odfpeaklines}}, \code{\link{gqi.odfpeaks}}, \code{\link{sph.odfpeaklines}}, and \code{\link{sph.odfpeaks}}.
-In these names, the prefix \code{gqi} references functions using the standard GQI method (Yeh et.al. 2010), or the GQI2 variant (Garyfallidis 2012) for ODF reconstruction.
-The prefix \code{sph} references functions using spherical harmonics approximations based on Aganj's ODF reconstruction (CSA-QBI).
+In these names, the prefix \sQuote{gqi} references functions using the standard GQI method (Yeh et.al. 2010), or the GQI2 variant (Garyfallidis 2012) for ODF reconstruction.
+The prefix \sQuote{sph} references functions using spherical harmonics approximations based on Aganj's ODF reconstruction (CSA-QBI).
 Visualization of RGB-maps and glyph-maps is implemented through \code{\link{rgbvolmap}} and \code{\link{gqi.odfvxgrid}}, respectively.
 Various types of simulations of diffusion and ODF profiles, illustrating the application of vMF mixtures for fibre orientation estimation are implemented in \code{\link{simulglyph.vmf}}, \code{\link{simul.simplefield}}, \code{\link{simul.fandtasia}}.
 Data sets used in the examples are documented.

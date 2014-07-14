@@ -4,9 +4,19 @@
 ##
 
 sph.odfvmflines <-
-function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, threshold=0.4, kdir=4, zfactor=5, showglyph=FALSE, snapshot=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfvmf", bg="white", order=4, texture=NULL, ...)
+function(run=TRUE, fbase=NULL, savedir=tempdir(), roi=NULL,  rg=c(1,1), swap=FALSE, btoption=2, threshold=0.4, kdir=4, zfactor=5, showglyph=FALSE, showimage="linesgfa", bview="coronal", bg="white", order=4, texture=NULL, clusterthr=0.6, aniso=NULL, ...)
 {
-  startctl=list(E="softmax", minalpha=8, start="s", maxiter=200) ## movMF inits
+  ## control parameters for movMF
+  E <- list(...)[["E"]]
+  if (is.null(E)) E <- "softmax"
+  kappa <- list(...)[["kappa"]]
+  if (is.null(kappa)) kappa <- "Newton_Fourier"
+  minalpha <- list(...)[["minalpha"]]
+  if (is.null(minalpha)) minalpha <- 8
+  start <- list(...)[["start"]]
+  if (is.null(start)) start <- "s"
+  startctl=list(E=E, kappa=kappa, minalpha=minalpha, start=start) ## movMF inits
+  ## 
   showimages <- c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata") ## map types
   kshow <- match(showimage, showimages)
   stopifnot(is.na(kshow) != TRUE)
@@ -21,21 +31,17 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
       readtable(fbase=fbase, filename="btable.txt"))
   }
   else {
-    if(btoption == 2) { 
-      if(is.null(fbase)) {
-        cat("Data files 'data.bval' and 'data.bvec' unspecified !\n") 
-        stop()
-      } else {
-        bval <- scantable(fbase=fbase, filename="data.bval")
-         # bvec <- readtable(fbase=fbase, filename="data.bvec")
-        bvec <- scantable(fbase=fbase, filename="data.bvec")
-        bvec <- matrix(bvec, ncol=3)
-        btable <- cbind(bval,bvec)
-        rm(bval, bvec)
-      }
+    if(btoption == 2) { ## Option 2: 3D-dsi grid 
+      bval <- scantable(fbase=fbase, filename="data.bval")
+      # bvec <- readtable(fbase=fbase, filename="data.bvec")
+      bvec <- scantable(fbase=fbase, filename="data.bvec")
+      bvec <- matrix(bvec, ncol=3)
+      btable <- cbind(bval,bvec)
+      rm(bval, bvec)
     }
     else stop()
   }
+  ##-----------
   b0 <- which(btable[,1] == 0)
   odfvertices <- btable[-b0,2:4]
   tc <-  geometry::delaunayn(odfvertices)
@@ -49,8 +55,7 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
     mask.nifti <-
       readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   else 
-    mask.nifti <-
-      readniidata(fbase=fbase, filename=paste(roi,".nii.gz", sep=""))
+    mask.nifti <- readniidata(fbase=fbase, filename=roi)
   volmask <- mask.nifti@.Data  
   rm(img.nifti, mask.nifti)
   gc()
@@ -109,7 +114,8 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
     sphcoef[-1,] <- sphcoef[-1,]/8/pi
     ## odfs
     odfs <- t(z$design) %*% sphcoef
-    odfs <- apply(odfs, 2, norm01) 
+    # odfs <- apply(odfs, 2, norm01) 
+     odfs <- apply(odfs, 2, anisofn, aniso=aniso) 
     ## gfas
     gfas <- apply(odfs, 2, genfa)
     gfas <- norm01(gfas) ## ??
@@ -146,7 +152,7 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
           cat(paste(tperc[tt],"% ", sep="")); cflush() }
         odf <- odfs[,m]
         ## Find peaks based on clusters
-        ith <- which(odf < threshold) 
+        ith <- which(odf < clusterthr) 
         vx <- odfvertices[-ith,]
         n <- dim(vx)[1]
         ## Fit a vMF mixture  with k=2
@@ -160,8 +166,16 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
         if(bic1 >= bic2) { yy <- y1 }
         else { yy <- y2 }
         np <- dim(yy$theta)[1]
-        ## separate by density: directly from estimated parameters
-        pcoords <- yy$theta/max(abs(yy$theta))
+        # reorder by alpha weight
+        yys <- sort(yy$alpha, decreasing=TRUE, index.return=TRUE)
+        yyn <- yy$theta[yys$ix,]
+        yy <- list(theta=yyn, alpha= yys$x)
+        # normalize for visualization
+        if(length(yy$alpha) < 2)
+          pn <- fnorm(yy$theta)
+        else
+          pn <- apply(yy$theta, 1, fnorm)
+        pcoords=yy$theta/pn
         pk <- list(np=np , pcoords=t(pcoords))
         if(pk$np < 2) {
           nullvectors <- c(nullvectors, m)
@@ -209,12 +223,12 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
       ck <- ck[1:q]
       res <- list( q=q, v=v, ck=ck, nullvectors=nullvectors,
         v1perslice=v1perslice)
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       save(res, file=fsave)
       cat("wrote", fsave,"\n")
     }
     else {
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       load(fsave)
       cat("loaded", fsave, "\n")
       q <- res$q; v <- res$v; ck <- res$ck;
@@ -267,13 +281,6 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
          par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
           rgl.bringtotop()
       }
-      if(snapshot) {
-        ## sp <- tempfile(pattern="maplines", tmpdir=savedir, fileext=".png")
-        sp <- paste(savedir,"/",pngfig,".png", sep="")
-        readline("Prepare zoom for taking rgl.snapshot and press return ... ")
-        rgl.snapshot(sp)
-        cat("snapshot file", sp,"\n")
-      }
     }
     ##---
     if(sl != last){
@@ -283,6 +290,8 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, btoption=1, thr
     }
   }
   cat("\n")
+  rm(list=ls())
+  gc()
   ## save V1 directions
   # if(run) {
   #   v1file <- paste(savedir,"/V1list.RData",sep="")

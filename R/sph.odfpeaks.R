@@ -2,7 +2,7 @@
 ## fslview-compatible gfa-map and V1 volumes 
 
 sph.odfpeaks <-
-function(fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir(), order=4)
+function(fbase=NULL, rg=NULL, swap=FALSE, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir(), order=4)
 {
   bviews <- c("sagittal", "coronal", "axial")
   kv <- match(bview, bviews)
@@ -10,30 +10,23 @@ function(fbase=NULL, rg=NULL, swap=FALSE, btoption=1, threshold=0.4, showglyph=F
   ##-----------
   ## Read data
   testfilexist(fbase=fbase, btoption=btoption)
-  if(btoption == 1) { ## Option 1: S2-shell (DSI 203-point 3mm)
-    btable <- as.matrix(
-      readtable(fbase=fbase, filename="btable.txt"))
-  }
-  else {
-    if(btoption == 2) { 
-      if(is.null(fbase)) {
-				cat("Data files 'data.bval' and 'data.bvec' unspecified !\n") 
-				stop()
-      } else {
-	      bval <- scantable(fbase=fbase, filename="data.bval")
- 	    	# bvec <- readtable(fbase=fbase, filename="data.bvec")
-        bvec <- scantable(fbase=fbase, filename="data.bvec")
-        bvec <- matrix(bvec, ncol=3)
- 	    	btable <- cbind(bval,bvec)
-        rm(bval, bvec)
-			}
+  if(btoption == 1){ ## Option 1: S2-shell (DSI 203-point 3mm)
+    btable <- as.matrix(readtable(fbase=fbase, filename="btable.txt"))
+  } else {
+    if(btoption == 2) { ## Option 2: 3D-dsi grid 
+      bval <- scantable(fbase=fbase, filename="data.bval")
+      # bvec <- readtable(fbase=fbase, filename="data.bvec")
+      bvec <- scantable(fbase=fbase, filename="data.bvec")
+      bvec <- matrix(bvec, ncol=3)
+      btable <- cbind(bval,bvec)
+      rm(bval, bvec)
     }
     else stop()
   }
-	b0 <- which(btable[,1] == 0)
-	odfvertices <- btable[-b0,2:4]
-	tc <-  geometry::delaunayn(odfvertices)
-	tcsurf <- t( surf.tri(odfvertices,tc))	
+  b0 <- which(btable[,1] == 0)
+  odfvertices <- matrix(btable[-b0,2:4], ncol=3)
+  tc <-  geometry::delaunayn(odfvertices)
+  tcsurf <- t( surf.tri(odfvertices,tc))  
   ##----------------------------
 	gc()
   cat("Reading data ...")

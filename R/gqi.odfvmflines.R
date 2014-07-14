@@ -4,11 +4,24 @@
 ##
 
 gqi.odfvmflines <-
-function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5, showglyph=FALSE, snapshot=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfvmf", bg="white", texture=NULL, ...)
+function(gdi="gqi", run=TRUE, fbase=NULL, savedir=tempdir(), roi=NULL, rg=c(1,1),
+ swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=6, zfactor=5,
+ showglyph=FALSE, showimage="linesgfa", bview="coronal", bg="white", texture=NULL,
+ clusterthr=0.6, aniso=NULL, ...)
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
-  startctl=list(E="softmax", minalpha=8, start="s", maxiter=200) ## movMF inits
+  ## control parameters for movMF
+  E <- list(...)[["E"]]
+  if (is.null(E)) E <- "softmax"
+  kappa <- list(...)[["kappa"]]
+  if (is.null(kappa)) kappa <- "Newton_Fourier"
+  minalpha <- list(...)[["minalpha"]]
+  if (is.null(minalpha)) minalpha <- 8
+  start <- list(...)[["start"]]
+  if (is.null(start)) start <- "s"
+  startctl=list(E=E, kappa=kappa, minalpha=minalpha, start=start) ## movMF inits
+  ## 
   showimages <- c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata") ## map types
   kshow <- match(showimage, showimages)
   stopifnot(is.na(kshow) != TRUE)
@@ -48,8 +61,7 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     mask.nifti <-
       readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   else 
-    mask.nifti <-
-      readniidata(fbase=fbase, filename=paste(roi,".nii.gz", sep=""))
+    mask.nifti <- readniidata(fbase=fbase, filename=roi)
   volmask <- mask.nifti@.Data  
   print(proc.time() - ptm)
   rm(img.nifti, mask.nifti)
@@ -82,10 +94,10 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
   v1count <- 0
   npar1 <- 7
   npar2 <- 15
+  npar3 <- 23
   # rglstart()
   for (sl in (first:last)) {
     cat("slice",sl,"\n")
-    ptm <- proc.time()
     #-------------------
     slicedata <- read.slice(img=volimg, mask=volmask, slice=sl,
        swap=swap, bview=bview)
@@ -94,7 +106,8 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     #-------------------
     ## odfs
     odfs <- q2odf %*% (ymaskdata$yn)
-    odfs <- apply(odfs, 2, norm01) ## normalize 
+    ##    odfs <- apply(odfs, 2, norm01) ## normalize 
+    odfs <- apply(odfs, 2, anisofn, aniso=aniso) 
     #-------------------
     ## gfas
     gfas <- apply(odfs, 2, genfa)
@@ -114,7 +127,6 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
       { nr <- d[2]; nc <- d[3]}, # sagittal,
       { nr <- d[1]; nc <- d[3]}, # coronal
       { nr <- d[1]; nc <- d[2]})  # axial
-    # nn <- 8*nr*nc
     nn <- nr*nc
     ck <- numeric(nn)
     v <- matrix(0, nrow=nn, ncol=3)
@@ -122,7 +134,7 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     v1perslice <- matrix(0, nrow=lix,ncol=3) # store v1 directions 
     nullvectors <- NULL
     if(run) {
-      ## ptm <- proc.time()
+      ptm <- proc.time()
       tperc <- c(20, 40, 60, 80)
       tline <- floor(c(0.2,0.4,0.6,0.8)*lix) 
       cat("vMF estimation for ", lix, "voxels, ...\n")
@@ -132,34 +144,51 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
           cat(paste(tperc[tt],"% ", sep="")); cflush() }
         odf <- odfs[,m]
         ## Find peaks based on clusters
-        ith <- which(odf < threshold) 
+        ith <- which(odf < clusterthr)
         vx <- odfvertices[-ith,]
         n <- dim(vx)[1]
+        lbn <- logb(n)
         ## Fit a vMF mixture  with k=2
         y1 <- movMF::movMF(vx, k=2, control=startctl) 
-        par1 <- logb(n)*npar1
+        par1 <- lbn*npar1
         bic1 <- 2*logLik(y1) - par1
         ## Fit a vMF mixture  with k=4
         y2 <- movMF::movMF(vx, k=4, control=startctl) 
-        par2 <- logb(n)*npar2
+        par2 <- lbn*npar2
         bic2 <- 2*logLik(y2) - par2
         if(bic1 >= bic2) { yy <- y1 }
-        else { yy <- y2 }
+        else {
+          ## Fit a vMF mixture  with k=6
+          y3 <- movMF::movMF(vx, k=6, control=startctl) 
+          par3 <- lbn*npar3
+          bic3 <- 2*logLik(y3) - par3
+          if(bic2 >= bic3) { yy <- y2 }
+          else { yy <- y3 }
+        }
         np <- dim(yy$theta)[1]
-        ## separate by density: directly from estimated parameters
-        pcoords <- yy$theta/max(abs(yy$theta))
-        pk <- list(np=np , pcoords=t(pcoords))
-        if(pk$np < 2) {
+        if(np < 2) {
           nullvectors <- c(nullvectors, m)
           next
         }
+        # reorder by alpha weight
+        yys <- sort(yy$alpha, decreasing=TRUE, index.return=TRUE)
+        yyn <- yy$theta[yys$ix,]
+        yy <- list(theta=yyn, alpha= yys$x)
+        # normalize for visualization
+        if(length(yy$alpha) < 2)
+          pn <- fnorm(yy$theta)
+        else
+          pn <- apply(yy$theta, 1, fnorm)
+        pcoords=yy$theta/pn
+        pk <- list(np=np , pcoords=t(pcoords))
         v1perslice[m,] <- pk$pcoords[,1]
         ## optional glyph visualization
         if(showglyph) {
           if(rgl.cur() == 0) rglinit()
           else rgl.clear()
-          if(pk$np > 2) {
+          if(pk$np > 2) { ## show crossing-fiber glyphs only
             plotglyph(odfs[,m], odfvertices, pk, kdir=kdir)
+            points3d(vx, col="violet")
             pp <- readline(
               "\nmore crossing-fiber glyphs  ? ('n' to exit) ") 
             if(pp == "n" ) { rgl.close(); showglyph <- FALSE; }
@@ -188,19 +217,19 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
         }
       }
       cat("100% completed\n")
-      ## print(proc.time() - ptm)
+      print(proc.time() - ptm)
       ## save slice data
       q <- q-1;  
       v <- v[1:q,]
       ck <- ck[1:q]
       res <- list( q=q, v=v, ck=ck, nullvectors=nullvectors,
         v1perslice=v1perslice)
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       save(res, file=fsave)
       cat("wrote", fsave,"\n")
     }
     else {
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       load(fsave)
       cat("loaded", fsave, "\n")
       q <- res$q; v <- res$v; ck <- res$ck;
@@ -252,13 +281,6 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
          par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
           rgl.bringtotop()
       }
-      if(snapshot) {
-        ## sp <- tempfile(pattern="maplines", tmpdir=savedir, fileext=".png")
-        sp <- paste(savedir,"/",pngfig,"_sl",sl,".png", sep="")
-        readline("Prepare zoom for taking rgl.snapshot and press return ... ")
-        rgl.snapshot(sp)
-        cat("snapshot file", sp,"\n")
-      }
     }
     ##---
     if(sl != last){
@@ -266,8 +288,9 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
       if(pp == "n" ) { break; }
       else { rgl.clear( type = "shapes" ) }
     }
-    print(proc.time() - ptm)
   }
+  rm(list=ls())
+  gc()
   ## save V1 directions
   # if(run) {
   #   v1file <- file.path(savedir,"V1list.RData")

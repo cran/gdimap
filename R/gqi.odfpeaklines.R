@@ -1,5 +1,5 @@
 gqi.odfpeaklines <-
-function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, snapshot=FALSE,  showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white", texture=NULL, ...)
+function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(), bg="white", texture=NULL, aniso=NULL, ...)
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
@@ -42,8 +42,7 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     mask.nifti <-
       readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   else 
-    mask.nifti <-
-      readniidata(fbase=fbase, filename=paste(roi,".nii.gz", sep=""))
+    mask.nifti <- readniidata(fbase=fbase, filename=roi)
   volmask <- mask.nifti@.Data  
 	print(proc.time() - ptm)
   rm(img.nifti, mask.nifti)
@@ -83,7 +82,8 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     if(ymaskdata$empty) next # empty mask
     ## odfs
     odfs <- q2odf %*% (ymaskdata$yn)
-    odfs <- apply(odfs, 2, norm01) ## normalize 
+    # odfs <- apply(odfs, 2, norm01) ## normalize 
+   	odfs <- apply(odfs, 2, anisofn, aniso=aniso) 
     ## gfas
     gfas <- apply(odfs, 2, genfa)
     gfas <- norm01(gfas) ## ??
@@ -159,12 +159,12 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
       ck <- ck[1:q]
       res <- list(q=q, v=v, ck=ck, nullvectors=nullvectors,
          v1perslice=v1perslice)
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       save(res, file=fsave)
       cat("wrote", fsave,"\n")
     }
     else {
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       load(fsave)
       cat("loaded", fsave, "\n")
       q <- res$q; v <- res$v; ck <- res$ck;
@@ -214,12 +214,6 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
         rgl.viewpoint(theta=0, phi=15)
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
         rgl.bringtotop()
-      }
-      if(snapshot) {
-        sp <- paste(savedir,"/",pngfig,"_sl",sl,".png", sep="")
-        readline("Prepare zoom for taking rgl.snapshot and press return ... ")
-        rgl.snapshot(sp)
-        cat("snapshot file", sp,"\n")
       }
     }
     ##---

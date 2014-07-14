@@ -13,25 +13,25 @@ This statistical estimation procedure is used to resolve crossing fibre mappings
 }
 
 \usage{
-sph.odfvmf(run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, btoption=1,
- threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir(),
- order=4)
+sph.odfvmf(run=TRUE, fbase=NULL, savedir=tempdir(), rg=NULL, swap=FALSE,
+ btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal", order=4,
+ clusterthr=0.6, aniso=NULL, ...)
 }
 
 \arguments{
 \item{run}{ logical variable enabling loading previously processed data (default: \code{TRUE}). } 
 \item{fbase}{ Directory where the required input data files are located. } 
+\item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{rg}{ range of slices to process; default option \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
-\item{btoption}{ b-table selection using the included data file \file{btable.txt} (\code{btoption=1})
- or user defined files. With \code{btoption=2}, diffusion data files \file{data.bvec} and \file{data.bval}
- are selected for input, as used in single-shell QBI acquisition. In this case, the files must be provided by the user.
- (Default \code{btoption=1}). }
+\item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}), and the 3D-DSI grid b-table extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
-\item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{order}{ parameter associated with the order of the spherical harmonics approximation (default: 4). }
+\item{clusterthr}{ thresholding orientations based on ODF values at each voxel for directional clustering (default: 0.6). }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
+\item{...}{ optional specification of non-default control parameters as detailed in \code{movMF}. }
 }
 
 \details{

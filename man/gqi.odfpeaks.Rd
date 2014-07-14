@@ -17,7 +17,7 @@ For identifying voxel fibre directions, the local maxima of the reconstructed OD
 \usage{
 gqi.odfpeaks(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL,
  depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal",
- savedir=tempdir())
+ savedir=tempdir(), aniso=NULL)
 }
 
 \arguments{
@@ -35,6 +35,7 @@ gqi.odfpeaks(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL,
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\}
  (default: \code{"coronal"}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
 }
 
 \details{

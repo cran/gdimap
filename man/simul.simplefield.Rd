@@ -14,19 +14,20 @@ ODF profiles and fibre directions are estimated using mixtures of von Mises-Fish
 
 \usage{
 simul.simplefield(gdi="gqi", b=3000, sigma=NULL,
- threshold=0.5, logplot=TRUE, savedir=tempdir(),
- fmask="m1", ang=NULL)
+ clusterthr=0.6, logplot=TRUE, savedir=tempdir(),
+ fmask="m1", ang=NULL, ...)
 }
 
 \arguments{
 \item{gdi}{ method of ODF reconstruction to use \code{c("gqi", "gqi2")} (default: \code{"gqi"}). }
 \item{b}{ strength of the magnetic diffusion gradient (default b-value=3000). }
 \item{sigma}{ Rician noise level used in simulation; (default \code{NULL}). }
-\item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.5). }
+\item{clusterthr}{ thresholding orientations based on ODF values at each voxel for directional clustering (default: 0.6). }
 \item{logplot}{ logical variable for selecting log-scale (default \code{TRUE}). }
 \item{savedir}{ directory for saving processed results (default: \code{tempdir()}. }
 \item{fmask}{ choice of field mask among a table of pre-defined mask models for simple field simulations. Models are built by indexing array masks. Models \code{c( "m1","m2","m3")} simulate single fiber fields. Models \code{c("mx1","mx2", "mx3"} simulates crossing-fiber fields. }
 \item{ang}{ angle in degrees to be cutomize \code{fmask} models (default: \code{NULL} - pre-defined angles are used). }
+\item{...}{ optional specification of non-default control parameters as detailed in \code{movMF}. }
 }
 
 \value{

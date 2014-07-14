@@ -13,7 +13,7 @@ function(g, gridsz=32, b=4000, sigma=NULL, savedir=tempdir())
   S <- array(1, dim=c(gridsz,gridsz,1,ngrad))
   gridsz2 <- gridsz/2
 	gc()
-  cat("Simulating DW-MRI field using Barmpoutis's algorithm\n")
+  cat("Simulating DW-MRI field using Barmpoutis' algorithm\n")
   cat("Please be patient ...\n")
   tline <- floor(c(0.2,0.4,0.6,0.8)*ngrad)
   tperc <- c(20, 40, 60, 80)

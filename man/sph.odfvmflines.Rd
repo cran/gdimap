@@ -12,10 +12,9 @@ Statistical orientation estimation in \code{sph.odfvmf} is based on von Mises-Fi
 }
 
 \usage{
-sph.odfvmflines(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE,
- btoption=1, threshold=0.4, kdir=4, zfactor=5, showglyph=FALSE,
- snapshot=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(),
- pngfig="odfvmf", bg="white", order=4, texture=NULL, ...)
+sph.odfvmflines(run=TRUE, fbase=NULL, savedir=tempdir(), roi=NULL,  rg=c(1,1), swap=FALSE,
+ btoption=2, threshold=0.4, kdir=4, zfactor=5, showglyph=FALSE, showimage="linesgfa",
+ bview="coronal", bg="white", order=4, texture=NULL, clusterthr=0.6, aniso=NULL, ...)
 }
 
 \arguments{
@@ -24,25 +23,22 @@ sph.odfvmflines(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE,
 \item{roi}{ Region of Interest (ROI) to use as mask; default mask (\code{roi=NULL}) uses an all brain mask for the supplied data set. }
 \item{rg}{ range of slices to process (default option \code{rg=c(1,1)}); \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
-\item{btoption}{ b-table selection using the included data file \file{btable.txt} (\code{btoption=1})
- or user defined files. With \code{btoption=2}, diffusion data files \file{data.bvec} and \file{data.bval}
- are selected for input, as used in single-shell QBI acquisition. In this case, the files must be provided by the user.
- (Default \code{btoption=1}). }
+\item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}), and the 3D-DSI grid b-table extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{kdir}{ maximum number of fibre directions to map (default: 4). }
 \item{zfactor}{ parameter controlling z-value in relief overlay maps (default: 5). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
-\item{snapshot}{ logical variable controlling line-maps snapshots (default: \code{FALSE}). }
 \item{showimage}{ object controlling visualization of line-maps (default: \code{"linesgfa"}). \cr
   Alternative options are:\cr
   \code{c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata")} \cr
  (see Details). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
-\item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfvmf"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
 \item{order}{ parameter associated with the order of the spherical harmonics approximation (default: 4). }
 \item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{clusterthr}{ thresholding orientations based on ODF values at each voxel for directional clustering (default: 0.6). }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
 \item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. }
 }
 
@@ -120,7 +116,13 @@ Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1
     showglyph=TRUE, threshold=0.5)
   ##-------------
   ## using a ROI overlay
-  sph.odfvmflines(run=TRUE, roi="slfcst")
+  sph.odfvmflines(run=TRUE, roi="slfcst.nii.gz")
+  ##-------------
+  ## speeded up approximations: hardmax and common/numeric kappa
+  sph.odfvmflines(run=TRUE, rg=c(1,1), showimage="linesdata",
+    E="hardmax", kappa=list(common = TRUE))
+  sph.odfvmflines(run=TRUE, rg=c(1,1), showimage="linesdata",
+    E="hardmax", kappa=20)
 }
 }
 

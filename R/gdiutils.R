@@ -23,8 +23,22 @@ norm01 <- function(x) {
 	else { return (x - min(x)) }
 }
 
+#----------------------------------------------
 maxone <- function(x) { return(which(x == max(x))[1]) }
 
+#----------------------------------------------
+fnorm <- function(x) { sqrt(sum(x^2)) }
+
+#----------------------------------------------
+anisofn <- function(x, aniso=NULL) {
+  if(!is.null(aniso)) {
+    stopifnot(aniso >= 0 & aniso < 1)
+    mx <- max(x)  
+    mn <- min(x)  
+    x <- pmax(x-mn-aniso*(mx-mn),0)
+  }
+  x <- norm01(x)
+}
 #----------------------------------------------
 # GQI-standard
 gqifn <-

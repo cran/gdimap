@@ -15,7 +15,7 @@ For identifying voxel fibre directions, the local maxima of the reconstructed OD
 }
 
 \usage{
-sph.odfpeaks(fbase=NULL, rg=NULL, swap=FALSE, btoption=1,
+sph.odfpeaks(fbase=NULL, rg=NULL, swap=FALSE, btoption=2,
  threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir(), order=4)
 }
 
@@ -23,10 +23,8 @@ sph.odfpeaks(fbase=NULL, rg=NULL, swap=FALSE, btoption=1,
 \item{fbase}{ Directory where the required input data files are located. } 
 \item{rg}{ range of slices to process; default option \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
-\item{btoption}{ b-table selection using the included data file \file{btable.txt} (\code{btoption=1})
- or user defined data files. With \code{btoption=2}, diffusion data files \file{data.bvec} and \file{data.bval}
- are selected for input, as used in single-shell QBI acquisition. In this case, the files must be provided by the user.
- (Default \code{btoption=1}). }
+\item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}),
+ and 3D-DSI grid b-table supplied with the diffusion data set (default \code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\}

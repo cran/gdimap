@@ -7,15 +7,19 @@
 
 \title{Fibre Orientation Mapping Based on von Mises-Fisher Distributions with GQI Reconstruction}
 \description{
-In order to enable mapping complex white matter fibres in the brain, \code{gqi.odfvmflines} implements a new methodology based on directional statistics to estimate fibre profiles from high angular resolution diffusion imaging data.
-Statistical orientation estimation in \code{gqi.odfvmf} is based on von Mises-Fisher clustering procedures provided by the R-package \pkg{movMF}, by Kurt Hornik and Bettina Gruen.
+In order to enable mapping complex white matter fibres in the brain, \code{gqi.odfvmflines}
+ implements a new methodology based on directional statistics to estimate fibre profiles
+ from high angular resolution diffusion imaging data.
+Statistical orientation estimation in \code{gqi.odfvmf} and \code{gqi.odfvmflines} is based
+ on von Mises-Fisher clustering procedures provided by the R-package \pkg{movMF},
+ by Kurt Hornik and Bettina Gruen.
 }
 
 \usage{
-gqi.odfvmflines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE,
- lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5,
- showglyph=FALSE, snapshot=FALSE, showimage="linesgfa", bview="coronal",
- savedir=tempdir(), pngfig="odfvmf", bg="white", texture=NULL, ...)
+gqi.odfvmflines(gdi="gqi", run=TRUE, fbase=NULL, savedir=tempdir(), roi=NULL,  rg=c(1,1),
+ swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=6, zfactor=5,
+ showglyph=FALSE, showimage="linesgfa", bview="coronal", bg="white", texture=NULL,
+ clusterthr=0.6, aniso=NULL, ...)
 }
 
 \arguments{
@@ -30,20 +34,20 @@ gqi.odfvmflines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALS
 \item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
 \item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}), and the 3D-DSI grid b-table extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
-\item{kdir}{ maximum number of fibre directions to map (default: 4). }
+\item{kdir}{ maximum number of fibre directions to map (default: 6). }
 \item{zfactor}{ parameter controlling z-value in relief overlay maps (default: 5). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
-\item{snapshot}{ logical variable controlling line-maps snapshots (default: \code{FALSE}). }
 \item{showimage}{ object controlling visualization of line-maps (default: \code{"linesgfa"}). \cr
   Alternative options are:\cr
   \code{c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata")} \cr
  (see Details). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
-\item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfvmf"}). }
-\item{bg}{ map background colour (default \code{"white"}) }
+\item{bg}{ map background colour (default \code{"white"}). }
 \item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
-\item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. }
+\item{clusterthr}{ thresholding orientations based on ODF values at each voxel for directional clustering (default: 0.6). }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
+\item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}, or specification of non-default control parameters as detailed in \code{movMF}. }
 }
 
 \details{
@@ -127,15 +131,25 @@ Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, Unive
   ## for principal direction determination
   gqi.odfvmflines(run=TRUE, depth=3,
     showimage="linesdata", showglyph=TRUE, threshold=0.5)
+  ## show glyphs with using 'aniso' parameter 
+  gqi.odfvmflines(run=TRUE, depth=3,
+    showimage="linesdata", showglyph=TRUE, threshold=0.5, aniso=0.3)
   ##-------------
   ## using a ROI overlay
-  gqi.odfvmflines(run=TRUE, depth=3, roi="slfcst")
+  gqi.odfvmflines(run=TRUE, depth=3, roi="slfcst.nii.gz")
   ##-------------
   ## coronal view with texture for a single slice
   texturefname <- file.path(tempdir(),"rgbmap.png")
   rgbvolmap(texture=texturefname, bg="transparent")
   gqi.odfvmflines(threshold=0.5, showimage="linesrgbmap",
     texture=texturefname)
+  ##-------------
+  ## speeded up approximations: hardmax and common/numeric kappa
+  gqi.odfvmflines(gdi="gqi", run=TRUE, rg=c(1,1), depth=2,
+    showimage="linesdata", threshold=0.5,
+    E="hardmax", kappa=list(common = TRUE))
+  gqi.odfvmflines(gdi="gqi", run=TRUE, rg=c(1,1), depth=2,
+    showimage="linesdata", threshold=0.5, E="hardmax", kappa=20)
 }
 }
 

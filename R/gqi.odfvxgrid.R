@@ -1,6 +1,6 @@
 
 gqi.odfvxgrid <-
-function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5, snapshot=FALSE, showimage="glyphgfa", bview="coronal", savedir=tempdir(), pngfig="odfglyphs", bg="white", texture=NULL, ...)
+function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5, showimage="glyphgfa", bview="coronal", savedir=tempdir(), bg="white", texture=NULL, aniso=NULL, ...)
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
@@ -70,7 +70,7 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
     if(ymaskdata$empty) next # empty mask
     ## odfs
     odfs <- q2odf %*% (ymaskdata$yn)
-    odfs <- apply(odfs, 2, norm01) ## normalize 
+    odfs <- apply(odfs, 2, anisofn, aniso=aniso) 
     ## gfas
     gfas <- apply(odfs, 2, genfa)
     z2d <- ymaskdata$kin
@@ -174,13 +174,6 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
         rgl.bringtotop()
       }
-      if(snapshot) {
-        ## sp <- tempfile(pattern="maplines", tmpdir=savedir, fileext=".png")
-        sp <- paste(savedir,"/",pngfig,"_sl",sl,".png", sep="")
-        readline("Prepare zoom for taking rgl.snapshot and press return ... ")
-        rgl.snapshot(sp)
-        cat("snapshot file", sp,"\n")
-      }
     }
     # print(proc.time() - ptm)
     ##---
@@ -191,4 +184,6 @@ function(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, bto
     }
   }
   cat("\n")
+  rm(list=ls())
+  gc()
 }

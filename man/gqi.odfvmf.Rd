@@ -14,15 +14,16 @@ This statistical estimation procedure is used to resolve crossing fibre mappings
 }
 
 \usage{
-gqi.odfvmf(gdi="gqi", run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL,
- depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal",
- savedir=tempdir())
+gqi.odfvmf(gdi="gqi", run=TRUE, fbase=NULL, savedir=tempdir(), rg=NULL, swap=FALSE,
+ lambda=NULL, depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal",
+ clusterthr=0.6, aniso=NULL, ...)
 }
 
 \arguments{
 \item{gdi}{ method of ODF reconstruction to use \code{c("gqi", "gqi2")} (default: \code{"gqi"}). }
 \item{run}{ logical variable enabling loading previously processed data (default: \code{TRUE}). } 
 \item{fbase}{ Directory where the required input data files are located. } 
+\item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{rg}{ range of slices to process; default option \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
 \item{lambda}{ diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"}.
@@ -32,7 +33,9 @@ gqi.odfvmf(gdi="gqi", run=TRUE, fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL,
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
-\item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
+\item{clusterthr}{ thresholding orientations based on ODF values at each voxel for directional clustering (default: 0.6). }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
+\item{...}{ optional specification of non-default control parameters as detailed in \code{movMF}. }
 }
 
 \details{
@@ -53,8 +56,7 @@ This b-table has 203 points uniformly distributed on a 3D grid limited to the vo
 In both tables, the b-values range from 0 to 4000.
 Sampling densities of N=81 (depth=2) and N=321 (depth=3) on the hemisphere are often used in ODF profile reconstruction from diffusion acquisitions. 
 
-The output files \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz} and \file{data_gfa_gqi.nii.gz} may be used for probabilistic white matter tractography. The principal diffusion direction (PDD) files \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz} retain information about the  'theta' and 'alpha' parameters of the von Mises-Fisher mixture at each voxel.
-For visualization purposes via a external tool such as "FSL/fslview" the voxel PDDs must be normalized to the unit sphere beforehand by using \code{niinorm}.
+The output files \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz}, \file{data_V3_gqi.nii.gz}, and \file{data_gfa_gqi.nii.gz} may be used for probabilistic white matter tractography. These principal diffusion direction (PDD) files retain information about the  'theta' and 'alpha' parameters of the von Mises-Fisher mixture at each voxel. The file  \file{data_V123_gqi.nii.gz} joins all three PDD files in a single NIfTI file.  For visualization purposes via a external tool such as "FSL/fslview" the voxel PDDs must be normalized to the unit sphere beforehand by using \code{niinorm}.
 }
 
 \value{
@@ -114,6 +116,11 @@ Jenkinson, M., Beckmann, C. F., Behrens, T. E., Woolrich, M. W., and Smith, S. M
       showglyph=TRUE, threshold=0.5)
     gqi.odfvmf(gdi="gqi2", rg=c(1,1), bview="coronal", depth=3,
       showglyph=TRUE, threshold=0.5)
+    ##-------------
+    ## speeded up approximations: hardmax and numeric kappa
+    gqi.odfvmf(depth=2, showglyph=FALSE, threshold=0.5, savedir=tempdir(),
+      E="hardmax", kappa=20)
+    rgbvolmap(fbase=tempdir(), rg=c(1,4), bview="coronal")
 }
 }
 

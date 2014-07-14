@@ -1,4 +1,15 @@
-Changes in gdimap version 0.1-3
+Changes in gdimap version 0.1-6
+
+  o In 'vmf' functions principal diffusion directions (PDD)
+    are now sorted  by 'alpha' (fitted mixture probabilities).
+  o Support for non-default control parameters in 'movMF' calls
+  o Changed normalization for glyph visualization to agree with
+    theta/|theta|.
+  o Eliminated 'snapshot' function args.
+
+Changes in gdimap version 0.1-4
+
+  o minor corrections
 
 Changes in gdimap version 0.1-1
 

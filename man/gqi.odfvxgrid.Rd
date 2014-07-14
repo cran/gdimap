@@ -11,8 +11,8 @@
 \usage{
 gqi.odfvxgrid(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL,
  depth=3, btoption=2, threshold=0.4, kdir=4, zfactor=5,
- snapshot=FALSE, showimage="glyphgfa", bview="coronal",
- savedir=tempdir(), pngfig="odfglyphs", bg="white", texture=NULL, ...)
+ showimage="glyphgfa", bview="coronal",
+ savedir=tempdir(), bg="white", texture=NULL, aniso=NULL, ...)
 }
 
 \arguments{
@@ -27,16 +27,15 @@ gqi.odfvxgrid(gdi="gqi", fbase=NULL, rg=c(1,1), swap=FALSE, lambda=NULL,
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
 \item{kdir}{ maximum number of fibre directions to map (default: 4). }
 \item{zfactor}{ parameter controlling z-value in relief overlay maps (default: 5). }
-\item{snapshot}{ logical variable controlling line-maps snapshots (default: \code{FALSE}). }
 \item{showimage}{ object controlling visualization of line-maps (default: \code{"glyphgfa"}). \cr
   Alternative options are: \cr
  \code{c("none", "gfa", "glyph", "glyphgfa", "glyphrgbmap", "glyphdata")} \cr 
  (see Details). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
-\item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"odfglyphs"}). }
 \item{bg}{ map background colour (default \code{"white"}) }
 \item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
+\item{aniso}{ anisotropic parameter in the range "[0,1)" or \code{NULL} to use in ODF pos-processing default: \code{NULL}. }
 \item{...}{ additional material properties for geometry appearance as specified in \code{rgl.material}. } 
 }
 

@@ -1,7 +1,7 @@
 ## Q-ball imaging volume processing for visualization of ODF line maps using findpeak()
 
 sph.odfpeaklines <-
-function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, snapshot=FALSE,  showimage="linesgfa", bview="coronal", savedir=tempdir(), pngfig="odfpeak", bg="white", order=4, texture=NULL, ...)
+function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=2, swap=FALSE, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(), bg="white", order=4, texture=NULL, ...)
 {
   showimages <- c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata") ## map types
   kshow <- match(showimage, showimages)
@@ -17,21 +17,17 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
       readtable(fbase=fbase, filename="btable.txt"))
   }
   else {
-    if(btoption == 2) { 
-      if(is.null(fbase)) {
-        cat("Data files 'data.bval' and 'data.bvec' unspecified !\n") 
-        stop()
-      } else {
-        bval <- scantable(fbase=fbase, filename="data.bval")
-        # bvec <- readtable(fbase=fbase, filename="data.bvec")
-        bvec <- scantable(fbase=fbase, filename="data.bvec")
-        bvec <- matrix(bvec, ncol=3)
-        btable <- cbind(bval,bvec)
-        rm(bval, bvec)
-      }
+    if(btoption == 2) { ## Option 2: 3D-dsi grid 
+      bval <- scantable(fbase=fbase, filename="data.bval")
+      # bvec <- readtable(fbase=fbase, filename="data.bvec")
+      bvec <- scantable(fbase=fbase, filename="data.bvec")
+      bvec <- matrix(bvec, ncol=3)
+      btable <- cbind(bval,bvec)
+      rm(bval, bvec)
     }
     else stop()
   }
+  ##-----------
   b0 <- which(btable[,1] == 0)
   odfvertices <- btable[-b0,2:4]
   tc <-  geometry::delaunayn(odfvertices)
@@ -45,8 +41,7 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
     mask.nifti <-
       readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
   else 
-    mask.nifti <-
-      readniidata(fbase=fbase, filename=paste(roi,".nii.gz", sep=""))
+    mask.nifti <- readniidata(fbase=fbase, filename=roi)
   volmask <- mask.nifti@.Data  
   rm(img.nifti, mask.nifti)
   gc()
@@ -179,12 +174,12 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
       ck <- ck[1:q]
       res <- list(q=q, v=v, ck=ck, nullvectors=nullvectors,
          v1perslice=v1perslice)
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       save(res, file=fsave)
       cat("wrote", fsave,"\n")
     }
     else {
-      fsave <- paste(savedir,"/vol",sl,".RData",sep="")
+      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
       load(fsave)
       cat("loaded", fsave, "\n")
       q <- res$q; v <- res$v; ck <- res$ck;
@@ -234,13 +229,6 @@ function(run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), btoption=1, swap=FALSE, thr
         rgl.viewpoint(theta=0, phi=15)
         par3d('windowRect'=c(0,0,600,600), 'zoom'=0.6, skipRedraw=FALSE)
           rgl.bringtotop()
-      }
-      if(snapshot) {
-        ## sp <- tempfile(pattern="maplines", tmpdir=savedir, fileext=".png")
-        sp <- paste(savedir,"/",pngfig,".png", sep="")
-        readline("Prepare zoom for taking rgl.snapshot and press return ... ")
-        rgl.snapshot(sp)
-        cat("snapshot file", sp,"\n")
       }
     }
     ##---

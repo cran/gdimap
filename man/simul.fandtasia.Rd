@@ -11,8 +11,7 @@ ODF profiles and fibre directions are estimated by relying on von Mises-Fisher (
 
 \usage{
 simul.fandtasia(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01,
- threshold=0.5, showglyph=FALSE, savedir=tempdir(), snapshot=FALSE,
- pngfig="fandtasia")
+ clusterthr=0.6, showglyph=FALSE, savedir=tempdir(), ...)
 }
 
 \arguments{
@@ -21,11 +20,10 @@ simul.fandtasia(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01,
 \item{b}{ strength of the magnetic diffusion gradient (default b-value=4000). }
 \item{depth}{ sampling densities on the hemisphere used in simulation (default N=321; depth=3). }
 \item{sigma}{ Rician noise level used in simulation; (default \code{0.01}). }
-\item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.5). }
+\item{clusterthr}{ thresholding orientations based on ODF values at each voxel for directional clustering (default: 0.6). }
 \item{showglyph}{ logical variable controlling visualization of voxel glyphs (default: \code{FALSE}). }
 \item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
-\item{snapshot}{ logical variable controlling line-maps snapshots (default: \code{FALSE}). }
-\item{pngfig}{ base-name of the PNG file when \code{snapshot} is \code{TRUE} (default \code{"fandtasia"}). }
+\item{...}{ optional specification of non-default control parameters as detailed in \code{movMF}. }
 }
 
 \details{
@@ -71,6 +69,8 @@ Barmpoutis, A. Tutorial on Diffusion Tensor MRI using Matlab. Electronic Edition
     ## using a 32x32 data field as in the original reference
     ## Warning: time-consuming example
     simul.fandtasia()
+    ## speeded up approximations: hardmax and numeric kappa
+    simul.fandtasia(gridsz=16, sigma=0.01, E="hardmax", kappa=20)
 }
 }
 

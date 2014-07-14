@@ -1,10 +1,10 @@
 simul.simplefield <-
-function(gdi="gqi", b=3000, sigma=NULL, threshold=0.5, logplot=TRUE,
- savedir=tempdir(), fmask="m1", ang=NULL)
+function(gdi="gqi", b=3000, sigma=NULL, clusterthr=0.6, logplot=TRUE,
+ savedir=tempdir(), fmask="m1", ang=NULL, ...)
 {
   ## glyph field mask 
   tfmask=c("m1","m2","m3","mx1","mx2","mx3")
-   ## default angles in masks
+  ## default angles in masks
   amask =c(60,60,60,60,90,45)
   mfun <- match(fmask, tfmask)
   if(is.null(ang))
@@ -37,12 +37,13 @@ function(gdi="gqi", b=3000, sigma=NULL, threshold=0.5, logplot=TRUE,
   field <- myglyph.synthsimul(as, ang=ang, g0, b=b, sigma=sigma,
                               logplot=logplot)
   ## Estimate ODFs
-  odfs <- fieldtestodf.gqi(gdi=gdi, g0, field,  b=b, lambda=NULL)
+  odfs <- fieldtestodf.gqi(gdi=gdi, g0, field,  b=b, lambda=NULL,
+    savedir=savedir)
   ## Visualize grid of glyphs with color
   plotodfvxgrid(g0, field=field, odfsdata=odfs)
   ## Using movMF for mixture estimation and peak detection)
   estimate.vmf.lines(g0, field=field, odfsdata=odfs,
-    showglyph=FALSE, threshold=threshold, savedir=savedir)
+    showglyph=FALSE, clusterthr=clusterthr, savedir=savedir, ...)
 }
 
 myglyph.synthsimul <-
@@ -104,7 +105,8 @@ function(as, ang=60, g0, b=3000, sigma=NULL, logplot=TRUE)
 
 ##--------------------------
 fieldtestodf.gqi <-
-function(gdi="gqi", grad, field, b=3000, lambda=NULL)
+function(gdi="gqi", grad, field, b=3000, lambda=NULL,
+ savedir=tempdir())
 {
   cat("estimating field odfs ...\n")
   gdimethods <- c("gqi", "gqi2")
@@ -116,7 +118,7 @@ function(gdi="gqi", grad, field, b=3000, lambda=NULL)
   nr <- dm[1]; nc <- dm[2]
   odfs <- matrix(0, dv[1], dv[2])
   bn <- rep(b, dim(grad)[1])
-  btable <- cbind(bn, grad)
+  btable <- as.matrix(cbind(bn, grad))
   ##-----------------------------
   ## "gdimethod" process
   cat("Estimating slice odfs ...\n")
@@ -136,6 +138,9 @@ function(gdi="gqi", grad, field, b=3000, lambda=NULL)
       odfs[k,] <- odf
     }
   }
+  f <- file.path(savedir,"simtable.txt")
+  write(t(btable), file=f, ncolumns=4)
+  cat("wrote",f,"\n")
   invisible(odfs)
 }
 
@@ -192,10 +197,20 @@ function(pc0, field, odfsdata)
 # Estimate vMF mixture and principal distribution directions (PDDs)
 #
 estimate.vmf.lines <-
-function(pc0, field, odfsdata, showglyph=FALSE, threshold=0.5, savedir=tempdir())
+function(pc0, field, odfsdata, showglyph=FALSE, clusterthr=0.6, savedir=tempdir(), ...)
 {
   normvf <- function(x) { norm(matrix(x,length(x),1),"f") }
-  startctl=list(E="softmax", minalpha=6, start="s", maxiter=200) # movMF inits
+  ## control parameters for movMF
+  E <- list(...)[["E"]]
+  if (is.null(E)) E <- "softmax"
+  kappa <- list(...)[["kappa"]]
+  if (is.null(kappa)) kappa <- "Newton_Fourier"
+  minalpha <- list(...)[["minalpha"]]
+  if (is.null(minalpha)) minalpha <- 8
+  start <- list(...)[["start"]]
+  if (is.null(start)) start <- "s"
+  startctl=list(E=E, kappa=kappa, minalpha=minalpha, start=start) ## movMF inits
+  ## 
   mask <- field$mask
   ## GFA
   odfs.reg <- t(apply(odfsdata, 1 , norm01))
@@ -223,7 +238,7 @@ function(pc0, field, odfsdata, showglyph=FALSE, threshold=0.5, savedir=tempdir()
   for(m in 1:lix) {
     odf <- odfs.reg[m,]
     gk <- gfas[m]
-    ith <- which(odf < threshold) 
+    ith <- which(odf < clusterthr) 
     vx <- pc0[-ith,]
     n <- dim(vx)[1]
     nc <- dim(vx)[2]
@@ -300,12 +315,6 @@ function(pc0, field, odfsdata, showglyph=FALSE, threshold=0.5, savedir=tempdir()
     }
   }
   cat("\n")
-  open3d()
-  cat("plotting ... \n")
-   segments3d(v[1:(q-1),], col=ck[1:(q-1)], lwd=2, alpha=1)
-   rgl.viewpoint(0,0)
-  ## 
-  cat("\n")
   f <- paste(savedir,"/data_gfa",sep="")
   writeNIfTI(volgfa, filename=f, verbose=TRUE)
   cat("wrote",f,"\n")
@@ -315,6 +324,14 @@ function(pc0, field, odfsdata, showglyph=FALSE, threshold=0.5, savedir=tempdir()
   f <- paste(savedir,"/data_V2",sep="")
   writeNIfTI(V2, filename=f, verbose=TRUE)
   cat("wrote",f,"\n")
+  ##--
+  open3d()
+  cat("plotting ... \n")
+  segments3d(v[1:(q-1),], col=ck[1:(q-1)], lwd=2, alpha=1)
+  rgl.viewpoint(0,0)
+  rgl.bringtotop()
+
+  ## 
 }
 
 ##--------------------------

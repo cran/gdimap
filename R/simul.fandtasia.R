@@ -1,5 +1,5 @@
 simul.fandtasia <-
-function(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showglyph=FALSE, savedir=tempdir(), snapshot=FALSE, pngfig="fandtasia")
+function(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01, clusterthr=0.6, showglyph=FALSE, savedir=tempdir(), ...)
 {
   ## S2 shell grid
   s2 <- s2tessel.zorder(depth=depth)
@@ -9,22 +9,17 @@ function(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01, threshold=0.5, showg
   sfield <- readniidata(fbase=savedir, filename="simfield.nii.gz")
   ## Estimate ODFs
   fielddata <- sfield@.Data
-  odfs <- field.gqi(gdi=gdi, g0, fielddata, b=b, lambda=NULL)
-  ## with vomMF clustering
-  plotodfvmf(s2, odfs, threshold=threshold, showglyph=showglyph, 
-             savedir=savedir)
-  if(snapshot) {
-    sp <- paste(savedir,"/",pngfig,".png", sep="")
-    Sys.sleep(2)
-    rgl.snapshot(sp)
-    cat("snapshot file", sp,"\n")
-  }
+  odfs <- field.gqi(gdi=gdi, g0, fielddata, b=b, lambda=NULL,
+                    savedir=savedir)
+  ## with vMF clustering
+  plotodfvmf(s2, odfs, clusterthr=clusterthr, showglyph=showglyph, 
+             savedir=savedir, ...)
 }
 
 ##----------------------
 
 field.gqi <-
-function(gdi="gqi", grad, fielddata, b=4000, lambda=NULL)
+function(gdi="gqi", grad, fielddata, b=4000, lambda=NULL, savedir=tempdir())
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
@@ -32,7 +27,7 @@ function(gdi="gqi", grad, fielddata, b=4000, lambda=NULL)
   dv <- dim(fielddata)
   odfs <- array(0, dim=c(dv[1:3], dv[4]-1))
   bn <- rep(b, dim(grad)[1])
-  btable <- cbind(bn, grad)
+  btable <- as.matrix(cbind(bn, grad))
   ##-----------------------------
   ## "gdimethod" process
   cat("Estimating slice odfs ...\n")
@@ -44,23 +39,35 @@ function(gdi="gqi", grad, fielddata, b=4000, lambda=NULL)
   ##-----------------------------
   for(i in 1:dv[1]) { 
     for(j in 1:dv[2]) {
-       S <- fielddata[i,j,1,]
+      S <- fielddata[i,j,1,]
       S <- S[2:dv[4]]
       odf <- q2odf%*%S
       odf <- odf - min(odf)
       odfs[i,j,1,] <- odf
     }
   }
+  f <- file.path(savedir,"simtable.txt")
+  write(t(btable), file=f, ncolumns=4)
+  cat("wrote",f,"\n")
   invisible(odfs)
 }
 
 ##----------------------
-# Overlay segments and GFA (anisotropy threshold)
 plotodfvmf <-
-function(s2, odfsdata, threshold=0.5, showglyph=FALSE, savedir=tempdir())
+function(s2, odfsdata, clusterthr=0.6, showglyph=FALSE, savedir=tempdir(), ...)
 {
   normvf <- function(x) { norm(matrix(x,length(x),1),"f") }
-  startctl=list(E="softmax", minalpha=6, start="s", maxiter=200) # movMF inits
+	## control parameters for movMF
+  E <- list(...)[["E"]]
+  if (is.null(E)) E <- "softmax"
+  kappa <- list(...)[["kappa"]]
+  if (is.null(kappa)) kappa <- "Newton_Fourier"
+  minalpha <- list(...)[["minalpha"]]
+  if (is.null(minalpha)) minalpha <- 8
+  start <- list(...)[["start"]]
+  if (is.null(start)) start <- "s"
+  startctl=list(E=E, kappa=kappa, minalpha=minalpha, start=start) ## movMF inits
+  ## 
   odfvertices <- s2$pc
   dm <- dim(odfsdata)
   odfs.mat <- array(odfsdata, dim=c(dm[1]*dm[2], dm[4]))
@@ -77,13 +84,6 @@ function(s2, odfsdata, threshold=0.5, showglyph=FALSE, savedir=tempdir())
   npar2 <- 15
   volmask <- matrix(1, nrow=dm[1], ncol=dm[2])
   z2d <- which(volmask != 0, arr.ind=TRUE) 
-#  ## mask out thresholded values
-#  zx <- which(gfas <= threshold)
-#  if(length(zx)) {
-#    z2d <- z2d[-zx,]
-#    gfas <- gfas[-zx]
-#    odfs <- odfs[,-zx]
-#  }
   volgfa <- array(0, dim=c(dim(volmask),1)) ## gfas map
   V1 <- array(0, dim=c(dim(volmask),1, 3)) ## V1 direction
   V2 <- array(0, dim=c(dim(volmask),1, 3)) ## V2 direction
@@ -99,7 +99,7 @@ function(s2, odfsdata, threshold=0.5, showglyph=FALSE, savedir=tempdir())
     cat(paste(tperc[tt],"% ", sep="")); cflush() }
     odf <- odfs[,m]
     gk <- gfas[m]
-    ith <- which(odf < threshold) 
+    ith <- which(odf < clusterthr) 
     ## odf <- odf - min(odf)
     vx <- odfvertices[-ith,]
     n <- dim(vx)[1]
@@ -174,7 +174,7 @@ function(s2, odfsdata, threshold=0.5, showglyph=FALSE, savedir=tempdir())
   }
   cat("100% completed\n")
   cat("\nplotting ... \n")
-  open3d()
+  ## open3d()
   segments3d(v[1:(q-1),], col=ck[1:(q-1)], lwd=2, alpha=1)
   rgl.viewpoint(0,0)
   par3d("windowRect"= c(100, 100, 700, 700), zoom=0.68)
@@ -199,15 +199,17 @@ function(s2, odfsdata, threshold=0.5, showglyph=FALSE, savedir=tempdir())
   # save(res, file=fsave)
   # cat("wrote", fsave,"\n")
   cat("\n")
-  f <- paste(savedir,"/data_gfa",sep="")
+  f <- file.path(savedir,"data_gfa")
   writeNIfTI(volgfa, filename=f, verbose=TRUE)
   cat("wrote",f,"\n")
-  f <- paste(savedir,"/data_V1",sep="")
+  f <- file.path(savedir,"data_V1")
   writeNIfTI(V1, filename=f, verbose=TRUE)
   cat("wrote",f,"\n")
-  f <- paste(savedir,"/data_V2",sep="")
+  f <- file.path(savedir,"data_V2")
   writeNIfTI(V2, filename=f, verbose=TRUE)
   cat("wrote",f,"\n")
+  ##------------------
+  rgl.bringtotop()
 }
 
 

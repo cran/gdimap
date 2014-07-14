@@ -2,7 +2,7 @@
 ## fslview-compatible gfa-map and V1 volumes 
 
 gqi.odfpeaks <-
-function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir())
+function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir(), aniso=NULL)
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
@@ -80,7 +80,8 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
     ##------------------
     ## odfs
     odfs <- q2odf %*% (ymaskdata$yn)
-    odfs <- apply(odfs, 2, norm01) ## normalize 
+    # odfs <- apply(odfs, 2, norm01) ## normalize 
+   	odfs <- apply(odfs, 2, anisofn, aniso=aniso) 
     ##------------------
     ## gfas
     gfas <- apply(odfs, 2, genfa)
@@ -113,13 +114,13 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
       if(showglyph) {
         if(rgl.cur() == 0) rglinit()
         else rgl.clear()
-        # if(pk$np > 2) {
+        if(pk$np < 2) { # show 1st direction only
           plotglyph(odfs[,m], odfvertices, pk, kdir=2, vmfglyph=FALSE)
            pp <- readline(
             "\nmore glyphs  ? ('n' to exit) ")
           if(pp == "n" ) { rgl.close(); showglyph <- FALSE; }
           else { rgl.clear( type = "shapes" ) }
-        # }
+        }
       }
     }
     # remove null pk vectors
