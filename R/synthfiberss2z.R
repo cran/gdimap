@@ -51,7 +51,7 @@ function(g0, angles=c(20,100), b=3000, S0=1, sigma=NULL, logplot=TRUE, pos=c(0,0
     if(new)
       open3d()
     pc <- pc/max(pc)
-    tc.surf <- t( surf.tri(pc,tc) )
+    tc.surf <- t( geometry::surf.tri(pc,tc) )
     lim=c(-1,1); 
     ## plot3d(pc[,1], pc[,2], pc[,3], xlim=lim, ylim=lim, zlim=lim)
     rgl.triangles(

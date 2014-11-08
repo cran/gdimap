@@ -28,29 +28,43 @@ function(fbase=NULL, rg=c(1,1), swap=FALSE, btoption=2, threshold=0.4, kdir=4, z
   b0 <- which(btable[,1] == 0)
   odfvertices <- btable[-b0,2:4]
   tc <-  geometry::delaunayn(odfvertices)
-  tcsurf <- t( surf.tri(odfvertices,tc))  
+  tcsurf <- t( geometry::surf.tri(odfvertices,tc))  
   ##----------------------------
   gc()
-  cat("Reading data ...")
-  img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
-  volimg <- img.nifti@.Data  
-  mask.nifti <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
-  volmask <- mask.nifti@.Data  
-  rm(img.nifti, mask.nifti)
-  gc()
-  ##----------------------------
-  d <- dim(volmask)
-  # volgfa <- array(0, dim=dim(volmask)) ## gfas map
-  # V1 <- array(0, dim=c(dim(volmask), 3)) ## V1 direction
+  cat("Reading data ...\n")
+  ptm <- proc.time()
+  niifile  <- readniidata(fbase=fbase, filename="data.nii.gz")
+  volimg <- nifti.image.read(niifile)
+  niimask <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
+  volmask <- nifti.image.read(niimask)
+  print(proc.time() - ptm)
+  d <- dim(volimg)
+  dm <- dim(volmask)
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
       { nslices <- d[2]}, # coronal
-      { nslices <- d[3]})  # axial
+      { nslices <- d[3]}) # axial
     first <- 1; last <- nslices
   }
-  else { first <- rg[1]; last <- rg[2] }
-  cat("\n")
+  else {
+    nslices <- diff(rg)+1
+    rx <- rg[1]:rg[2]
+    switch(kv,
+      { d[1] <- nslices; dm[1] <- nslices
+        volimg <- volimg[rx,,,];
+        volmask <- volmask[rx,,]; }, # sagittal,
+      { d[2] <- nslices; dm[2] <- nslices
+        volimg <- volimg[,rx,,]; 
+        volmask <- volmask[,rx,]; }, # coronal
+      { d[3] <- nslices; dm[3] <- nslices
+        volimg <- volimg[,,rx,];
+        volmask <- volmask[,,rx]; })  # axial
+    first <- 1; last <- nslices
+  }
+  volimg <- array(volimg, dim=d)
+  volmask <- array(volmask, dim=dm)
+  gc()
   ##-----------------------------
   ## SPH process preparation
   gradient <- t(odfvertices)

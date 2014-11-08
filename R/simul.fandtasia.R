@@ -6,9 +6,9 @@ function(gdi="gqi", gridsz=32, b=4000, depth=3, sigma=0.01, clusterthr=0.6, show
   g0 <- s2$pc
   simul.fandtasiaSignal(g=s2$pc, gridsz=gridsz, b=b, sigma=sigma,
     savedir=savedir)
-  sfield <- readniidata(fbase=savedir, filename="simfield.nii.gz")
+  niifile  <- readniidata(fbase=savedir, filename="simfield.nii.gz")
+  fielddata  <- nifti.image.read(niifile)
   ## Estimate ODFs
-  fielddata <- sfield@.Data
   odfs <- field.gqi(gdi=gdi, g0, fielddata, b=b, lambda=NULL,
                     savedir=savedir)
   ## with vMF clustering
@@ -57,7 +57,7 @@ plotodfvmf <-
 function(s2, odfsdata, clusterthr=0.6, showglyph=FALSE, savedir=tempdir(), ...)
 {
   normvf <- function(x) { norm(matrix(x,length(x),1),"f") }
-	## control parameters for movMF
+  ## control parameters for movMF
   E <- list(...)[["E"]]
   if (is.null(E)) E <- "softmax"
   kappa <- list(...)[["kappa"]]
@@ -199,17 +199,22 @@ function(s2, odfsdata, clusterthr=0.6, showglyph=FALSE, savedir=tempdir(), ...)
   # save(res, file=fsave)
   # cat("wrote", fsave,"\n")
   cat("\n")
-  f <- file.path(savedir,"data_gfa")
-  writeNIfTI(volgfa, filename=f, verbose=TRUE)
-  cat("wrote",f,"\n")
-  f <- file.path(savedir,"data_V1")
-  writeNIfTI(V1, filename=f, verbose=TRUE)
-  cat("wrote",f,"\n")
-  f <- file.path(savedir,"data_V2")
-  writeNIfTI(V2, filename=f, verbose=TRUE)
-  cat("wrote",f,"\n")
-  ##------------------
-  rgl.bringtotop()
+	##----------------
+  ##  store as nifti
+  f <- "data_gfa"
+  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(volgfa))
+  niivol[] <- volgfa[]
+  nifti.image.write(niivol)
+  cat("wrote",file.path(savedir,f),"\n")
+  f <- "data_V1"
+  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V1))
+  niivol[] <- V1[]
+  nifti.image.write(niivol)
+  cat("wrote",file.path(savedir,f),"\n")
+  f <- "data_V2"
+  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V2))
+  niivol[] <- V2[]
+  nifti.image.write(niivol)
+  cat("wrote",file.path(savedir,f),"\n")
 }
-
 

@@ -25,7 +25,7 @@ simulglyph.vmf(gdi="gqi", s2grid=NULL, angles=c(20,100), depth=3, b=3000,
 \item{b}{ strength of the magnetic diffusion gradient (default b-value=3000). }
 \item{lambda}{ model parameter:  diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"};
  Aganj's regularization parameter in \code{gdi="sph"}. By default the following default values are used when
- \code{lambda=NULL} is specified: 1.24 in "gqi", 3 in "gqi2", and 0.006 in "sph". }
+ \code{lambda=NULL} is specified: 1.25 in "gqi", 3 in "gqi2", and 0.006 in "sph". }
 \item{order}{ parameter associated with the order of the spherical harmonics approximation for
  \code{gdi="sph"} (default: 4). }
 \item{sigma}{ Rician noise level used in simulation; (default \code{NULL}). }
@@ -53,7 +53,7 @@ Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orie
 
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
-Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2012. R package version 0.0-2.
+Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2014. R package version 0.2-0.
 
 Adler, D., and Murdoch, D. \pkg{rgl}: 3D visualization device system (OpenGL), 2012. R package version 0.92.880.
 

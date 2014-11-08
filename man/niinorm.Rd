@@ -9,7 +9,7 @@ On the other hand, normalized PDD values are useful for visualization and seed m
 }
 
 \usage{
-niinorm(srcdir=tempfile(), filename="data_V1", savedir=tempdir())
+niinorm(srcdir=tempdir(), filename="data_V1", savedir=tempdir())
 }
 
 \arguments{

@@ -11,14 +11,13 @@
 }
 
 \usage{
-sph.odfpeaklines(run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1), btoption=2,
+sph.odfpeaklines(fbase=NULL, roi=NULL, rg=c(1,1), btoption=2,
  swap=FALSE, threshold=0.4, kdir=2,  zfactor=5, showglyph=FALSE,
  showimage="linesgfa", bview="coronal", savedir=tempdir(),
  bg="white", order=4, texture=NULL, ...)
 }
 
 \arguments{
-\item{run}{ logical variable enabling loading previously processed data (default: \code{TRUE}). } 
 \item{fbase}{ Directory where the required input data files are located. } 
 \item{roi}{ Region of Interest (ROI) to use as mask; default mask (\code{roi=NULL}) uses an all brain mask
  for the supplied data set. }
@@ -107,9 +106,9 @@ Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1
 \dontrun{
   ##-------------
   ## Line map using ODF peak detection 
-  sph.odfpeaklines(run=TRUE, showimage="lines")
+  sph.odfpeaklines(showimage="lines")
   ## display line-map overlayed on GFA map 
-  sph.odfpeaklines(run=FALSE, showimage="linesgfa")
+  sph.odfpeaklines(showimage="linesgfa")
   ##-------------
   ## Show examples of reconstructed glyphs in ODF processing 
   sph.odfpeaklines(showimage="lines", showglyph=TRUE)

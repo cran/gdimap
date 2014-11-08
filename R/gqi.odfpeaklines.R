@@ -1,5 +1,5 @@
 gqi.odfpeaklines <-
-function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(), bg="white", texture=NULL, aniso=NULL, ...)
+function(gdi="gqi", fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2, zfactor=5, showglyph=FALSE, showimage="linesgfa", bview="coronal", savedir=tempdir(), bg="white", texture=NULL, aniso=NULL, ...)
 {
   gdimethods <- c("gqi", "gqi2")
   gdimethod <- match(gdi, gdimethods)
@@ -33,33 +33,47 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     else stop()
   }
   ##----------------------------
-	gc()
+  gc()
   cat("Reading data ...\n")
   ptm <- proc.time()
-  img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
-  volimg <- img.nifti@.Data  
-  if(is.null(roi))
-    mask.nifti <-
-      readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
-  else 
-    mask.nifti <- readniidata(fbase=fbase, filename=roi)
-  volmask <- mask.nifti@.Data  
-	print(proc.time() - ptm)
-  rm(img.nifti, mask.nifti)
-  gc()
-  ##----------------------------
-  d <- dim(volmask)
-  volgfa <- array(0, dim=d)   ## gfas map
-  V1 <- array(0, dim=c(d, 3)) ## V1 direction
+  niifile  <- readniidata(fbase=fbase, filename="data.nii.gz")
+  volimg <- nifti.image.read(niifile)
+  if(is.null(roi)) {
+    niimask <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
+    volmask <- nifti.image.read(niimask)
+  }
+  else {
+    niimask <- readniidata(fbase=fbase, filename=roi)
+    volmask <- nifti.image.read(niimask)
+  }
+  print(proc.time() - ptm)
+  d <- dim(volimg)
+  dm <- dim(volmask)
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
       { nslices <- d[2]}, # coronal
-      { nslices <- d[3]})  # axial
+      { nslices <- d[3]}) # axial
     first <- 1; last <- nslices
   }
-  else { first <- rg[1]; last <- rg[2] }
-  cat("\n")
+  else {
+    nslices <- diff(rg)+1
+    rx <- rg[1]:rg[2]
+    switch(kv,
+      { d[1] <- nslices; dm[1] <- nslices
+        volimg <- volimg[rx,,,];
+        volmask <- volmask[rx,,]; }, # sagittal,
+      { d[2] <- nslices; dm[2] <- nslices
+        volimg <- volimg[,rx,,]; 
+        volmask <- volmask[,rx,]; }, # coronal
+      { d[3] <- nslices; dm[3] <- nslices
+        volimg <- volimg[,,rx,];
+        volmask <- volmask[,,rx]; })  # axial
+    first <- 1; last <- nslices
+  }
+  volimg <- array(volimg, dim=d)
+  volmask <- array(volmask, dim=dm)
+  gc()
   ##-----------------------------
   ## "gdimethod" process
   cat("Estimating slice odfs ...\n")
@@ -73,23 +87,19 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
   ## v1list: vector of lists
   nv1 <- length(first:last)
   v1list <- vector(mode="list", nv1)
-  v1count <- 0
   ## rglstart()
   for (sl in (first:last)) {
     cat("slice",sl,"; ")
     slicedata <- read.slice(img=volimg, mask=volmask, slice=sl, swap=swap, bview=bview)
     ymaskdata <- premask(slicedata)
     if(ymaskdata$empty) next # empty mask
-    ## odfs
     odfs <- q2odf %*% (ymaskdata$yn)
     # odfs <- apply(odfs, 2, norm01) ## normalize 
-   	odfs <- apply(odfs, 2, anisofn, aniso=aniso) 
-    ## gfas
+    odfs <- apply(odfs, 2, anisofn, aniso=aniso) 
     gfas <- apply(odfs, 2, genfa)
     gfas <- norm01(gfas) ## ??
     z2d <- ymaskdata$kin
-     ## mask out thresholded values
-    zx <- which(gfas <= threshold)
+    zx <- which(gfas <= threshold) ## mask out thresholded values
     if(length(zx)) {
       z2d <- z2d[-zx,]
       gfas <- gfas[-zx]
@@ -101,92 +111,54 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     switch(kv,
       { nr <- d[2]; nc <- d[3]}, # sagittal,
       { nr <- d[1]; nc <- d[3]}, # coronal
-      { nr <- d[1]; nc <- d[2]})  # axial
+      { nr <- d[1]; nc <- d[2]}) # axial
     nn <- nr*nc
     ck <- numeric(nn)
     v <- matrix(0, nrow=nn, ncol=3)
     q <- 1
-    v1perslice <- matrix(0, nrow=lix,ncol=3) # store v1 directions 
-    nullvectors <- NULL
-    if(run) {
-      cat(lix,"voxels, ...")
-      for(m in 1:lix) {
-        odf <- odfs[,m]
-        ## find peaks
-        odf <- odf[1:(length(odf)/2)] # use half sized odf in findpeak
-        pk <- findpeak(odf, t(odfvertices), tcsurf)
-        if(length(pk$peaks) < 1 | (length(pk$peaks) > 4)) {
-          nullvectors <- c(nullvectors, m)
-          next
-        }
-        v1perslice[m,] <- pk$pcoords[,1]
-        ## optional cross-fiber glyph visualization
-        if(showglyph) {
-          if(rgl.cur() == 0) rglinit()
-          else rgl.clear()
-          # if(pk$np > 2) {
-            plotglyph(odfs[,m], odfvertices, pk, kdir=kdir, vmfglyph=FALSE)
-            pp <- readline(
-              "\nmore fiber glyphs  ? ('n' to exit) ") 
-            if(pp == "n" ) { rgl.close(); showglyph <- FALSE; }
-            else { rgl.clear( type = "shapes" ) }
-          # }
-        }
-        ## directions of max odf values to define (colored) lines
-        gk <- gfas[m] 
-        pos <- c(z2d[m,],0) # use yy-swapped mask
-        for(k in 1:min(pk$np, kdir)) {
-          coords <- pk$pcoords
-          zch <- coords[,k] * gk
-          zch <- t(norm01(abs(zch)))
-          if(q+1 > nn) {
-            ck <- append(ck , numeric(nn))
-            v <- rbind(v,  matrix(0, nrow=nn, ncol=3))
-            nn <- nn+nn
-          }
-          ck[q] <- rgb(zch)
-          ck[q+1] <- ck[q]
-          pp <- pk$pcoords[,k]/2
-          v[q,] <- -pp + pos
-          v[q+1,]  <-  pp + pos
-          q <- q+2
-        }
+    cat(lix,"voxels, ...")
+    for(m in 1:lix) {
+      odf <- odfs[,m]
+      ## find peaks
+      odf <- odf[1:(length(odf)/2)] # use half sized odf in findpeak
+      pk <- findpeak(odf, t(odfvertices), tcsurf)
+      ## optional cross-fiber glyph visualization
+      if(showglyph) {
+        if(rgl.cur() == 0) rglinit()
+        else rgl.clear()
+        # if(pk$np > 2) {
+          plotglyph(odfs[,m], odfvertices, pk, kdir=kdir, vmfglyph=FALSE)
+          pp <- readline(
+            "\nmore fiber glyphs  ? ('n' to exit) ") 
+          if(pp == "n" ) { rgl.close(); showglyph <- FALSE; }
+          else { rgl.clear( type = "shapes" ) }
+        # }
       }
-      cat("\n")
-      ## save slice data
-      q <- q-1;  
-      v <- v[1:q,]
-      ck <- ck[1:q]
-      res <- list(q=q, v=v, ck=ck, nullvectors=nullvectors,
-         v1perslice=v1perslice)
-      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
-      save(res, file=fsave)
-      cat("wrote", fsave,"\n")
+      ## directions of max odf values to define (colored) lines
+      gk <- gfas[m] 
+      pos <- c(z2d[m,],0) # use yy-swapped mask
+      for(k in 1:min(pk$np, kdir)) {
+        coords <- pk$pcoords
+        zch <- coords[,k] * gk
+        zch <- t(norm01(abs(zch)))
+        if(q+1 > nn) {
+          ck <- append(ck , numeric(nn))
+          v <- rbind(v,  matrix(0, nrow=nn, ncol=3))
+          nn <- nn+nn
+        }
+        ck[q] <- rgb(zch)
+        ck[q+1] <- ck[q]
+        pp <- pk$pcoords[,k]/2
+        v[q,] <- -pp + pos
+        v[q+1,]  <-  pp + pos
+        q <- q+2
+      }
     }
-    else {
-      fsave <- paste(savedir,"/sl",sl,".RData",sep="")
-      load(fsave)
-      cat("loaded", fsave, "\n")
-      q <- res$q; v <- res$v; ck <- res$ck;
-      nullvectors <- res$nullvectors;
-      v1perslice <- res$v1perslice
-    }
-    # remove null pk vectors
-    nvl <- lix
-    nnv <- length(nullvectors)
-    if(nnv > 0) {
-      nvl <- nvl-nnv
-      v1perslice <- v1perslice[-nullvectors,]
-      z2d <- z2d[-nullvectors,]
-      gfas <- gfas[-nullvectors]
-    }
-    if(is.null(dim(z2d))) next
-    v1perslicelist <- list(n=nvl, v1=v1perslice)
-    v1count <- v1count+1
-    v1list[[v1count]] <- v1perslicelist 
-    ##---
-    if(kshow != 1){
-      ## one image per slice
+    cat("\n")
+    q <- q-1;  
+    v <- v[1:q,]
+    ck <- ck[1:q]
+    if(kshow != 1){ ## one image per slice
       # rgl.init()
       if(sl == first) {
         rglstart(bg=bg)
@@ -216,7 +188,6 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
         rgl.bringtotop()
       }
     }
-    ##---
     if(sl != last) {
       pp <- readline("continue to next 'rg' slice ? ('n' to exit) ") 
       if(pp == "n" ) { break; }
@@ -224,11 +195,5 @@ function(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE, lamb
     }
   }
   cat("\n")
-  ## save V1 directions
-  # if(run) {
-  #   v1file <- file.path(savedir,"V1list.RData")
-  #   save(v1list, file=v1file) # list of v1 vectors 
-  #   cat("saved V1 directions ",v1file,"\n")
-  # }
 }
 

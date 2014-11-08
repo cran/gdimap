@@ -27,7 +27,7 @@ gqi.odfvmf(gdi="gqi", run=TRUE, fbase=NULL, savedir=tempdir(), rg=NULL, swap=FAL
 \item{rg}{ range of slices to process; default option \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
 \item{lambda}{ diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"}.
- By default the following default values are used when \code{lambda=NULL} is specified: 1.24 in \dQuote{gqi}, 3 in \dQuote{gqi2}. }
+ By default the following default values are used when \code{lambda=NULL} is specified: 1.25 in \dQuote{gqi}, 3 in \dQuote{gqi2}. }
 \item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
 \item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}), and the 3D-DSI grid b-table extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
 \item{threshold}{ thresholding generalized fractional anisotropy (GFA) value at each voxel (default: 0.4). }
@@ -67,11 +67,13 @@ The output files \file{data_V1_gqi.nii.gz}, \file{data_V2_gqi.nii.gz}, \file{dat
 }
 
 \references{
+Ferreira da Silva, A. R., Modeling White-matter Fiber-orientation Uncertainty for Improved Probabilistic Tractography. In \emph{Proc. of the  2nd Int. Congr. on Neurotechnology, Electronics and Informatics, NEUROTECHNIX 2014}, Rome, Italy, (Oct., 2014), A. Londral and P. Encarnacao, Eds., INSTICC, SCITEPRESS, pp 71-78.
+
 Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
 
 Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
-Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2012. R package version 0.1-0.
+Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2014. R package version 0.2-0.
 
 Yeh, F.-C., Wedeen, V. J., and Tseng, W.-Y. I. Generalized q-Sampling Imaging. \emph{IEEE Transactions on Medical Imaging} 29, 9 (2010), 1626-1635.
 

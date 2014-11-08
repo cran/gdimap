@@ -1,3 +1,6 @@
+Changes in gdimap version 0.1-8
+  o using 'Rniftilib' instead of 'oro.nifti' for reading/writing NiFTI datasets
+
 Changes in gdimap version 0.1-6
 
   o In 'vmf' functions principal diffusion directions (PDD)

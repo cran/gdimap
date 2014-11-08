@@ -12,7 +12,7 @@ function(g, gridsz=32, b=4000, sigma=NULL, savedir=tempdir())
   ngrad <- dim(GradientOrientations)[1]
   S <- array(1, dim=c(gridsz,gridsz,1,ngrad))
   gridsz2 <- gridsz/2
-	gc()
+  gc()
   cat("Simulating DW-MRI field using Barmpoutis' algorithm\n")
   cat("Please be patient ...\n")
   tline <- floor(c(0.2,0.4,0.6,0.8)*ngrad)
@@ -61,10 +61,11 @@ function(g, gridsz=32, b=4000, sigma=NULL, savedir=tempdir())
     }
   }
   cat("100% completed\n")
-  f <- paste(savedir,"/simfield",sep="")
-  options(niftiAuditTrail = FALSE)
-  writeNIfTI(S, filename=f)
-  cat("wrote",f,"\n")
+  f <- "simfield"
+  niis <- niisetup(savedir=savedir, filename=f, dim=dim(S))
+  niis[] <- S[]
+  nifti.image.write(niis)
+  cat("wrote",file.path(savedir,f),"\n")
 }
 
 
