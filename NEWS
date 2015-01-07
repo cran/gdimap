@@ -1,5 +1,13 @@
+Changes in gdimap version 0.1-9
+  o reverting to gdimap version 0.1-6 which used 'oro.nifti' for
+    reading/writing NiFTI datasets. Reason: the package 'Rniftilib'
+    has been removed from CRAN.
+
 Changes in gdimap version 0.1-8
-  o using 'Rniftilib' instead of 'oro.nifti' for reading/writing NiFTI datasets
+  o using package 'Rniftilib' instead of 'oro.nifti' for
+    reading/writing NiFTI datasets. Rniftilib's functions were
+    found faster and requiring less RAM than oro.nifti's,
+    for large datasets. 
 
 Changes in gdimap version 0.1-6
 
@@ -32,6 +40,6 @@ Changes in gdimap version 0.1-1
 
 Changes in gdimap version 0.0-3
 
-  o	Format of "data.bvec" file was modified to be specified as a matrix
+  o  Format of "data.bvec" file was modified to be specified as a matrix
     of size nx3. Functions were modified accordingly.
   o Minor corrections in examples.

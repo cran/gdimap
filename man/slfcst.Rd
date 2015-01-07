@@ -24,6 +24,8 @@ The ROI file \file{slfcst.nii.gz} depicts brain regions where anatomic white mat
 
 \references{
 Jenkinson, M., Beckmann, C. F., Behrens, T. E., Woolrich, M. W., and Smith, S. M. Fsl. \emph{NeuroImage} 62, 2 (2012), 782-790.
+
+Whitcher, B., Schmid, V. J., and Thornton, A. Working with the DICOM and NIfTI data standards in R. \emph{Journal of Statistical Software} 44, 6 (2011), 1-28.
 }
 
 \keyword{ data }

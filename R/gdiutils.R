@@ -44,7 +44,7 @@ anisofn <- function(x, aniso=NULL) {
 gqifn <-
 function(odfvert, btable, lambda=NULL)
 {
-  if(is.null(lambda)) lambda <- 1.25
+  if(is.null(lambda)) lambda <- 1.24
 	lvalues <- sqrt(btable[,1]*0.01506)
 	bvector <- btable[,2:4]*repmat(lvalues,1,3)
 	q0 <- (odfvert %*% t(bvector) * lambda) / pi 

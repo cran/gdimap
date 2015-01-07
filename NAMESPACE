@@ -1,9 +1,8 @@
 import("rgl")
 
-importFrom("Rniftilib", "nifti.image.read", "nifti.image.write",
-"nifti.image.new", "nifti.set.filenames")
+importFrom("oro.nifti", "readNIfTI", "writeNIfTI")
 importFrom("movMF", "movMF")
-importFrom("geometry", "delaunayn", "extprod3d", "surf.tri")
+importFrom("geometry", "delaunayn", "extprod3d")
 importFrom("grid", "rasterGrob")
 importFrom("gridExtra", "grid.arrange")
 importFrom("gsl", "sinc", "legendre_sphPlm")
@@ -29,6 +28,5 @@ export(gqi.odfpeaks,
  sph.odfvmf,
  sph.odfvmflines,
  sph.odfvxgrid,
- niinorm,
- niisetup
+ niinorm
 )

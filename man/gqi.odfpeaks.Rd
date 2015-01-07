@@ -26,7 +26,7 @@ gqi.odfpeaks(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL,
 \item{rg}{ range of slices to process; default option \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
 \item{lambda}{ diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"}.
- By default the following default values are used when \code{lambda=NULL} is specified: 1.25 in "gqi", 3 in "gqi2". }
+ By default the following default values are used when \code{lambda=NULL} is specified: 1.24 in "gqi", 3 in "gqi2". }
 \item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
 \item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}),
  and 3D-DSI grid b-table supplied with the diffusion data set (default \code{btoption=2}). }

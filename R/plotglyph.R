@@ -5,7 +5,7 @@ function(odf, grad, pk, kdir=6, vmfglyph=TRUE, pos=c(0,0,0))
   pc0 <- grad
   # pc0 <- rbind(grad, -grad)
   tc <-  geometry::delaunayn(pc0)
-  tc.surf <- t( geometry::surf.tri(pc0,tc) )
+  tc.surf <- t( surf.tri(pc0,tc) )
   #  open3d()
   odf <- odf - min(odf)
   gk <- genfa(odf)

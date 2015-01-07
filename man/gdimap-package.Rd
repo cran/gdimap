@@ -40,15 +40,11 @@ vMF - von Mises-Fisher\cr
 }
 
 \references{
-Ferreira da Silva, A. R., Modeling White-matter Fiber-orientation Uncertainty for Improved Probabilistic Tractography. In \emph{Proc. of the  2nd Int. Congr. on Neurotechnology, Electronics and Informatics, NEUROTECHNIX 2014}, Rome, Italy, (Oct., 2014), A. Londral and P. Encarnacao, Eds., INSTICC, SCITEPRESS, pp 71-78.
+Ferreira da Silva, A. R. Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
 
-Ferreira da Silva, A. R., Computational Representation of White Matter Fiber Orientations, \emph{International Journal of Biomedical Imaging}, Vol. 2013, Article ID 232143, Hindawi Publishing Corporation \url{http://dx.doi.org/10.1155/2013/232143}.
+Ferreira da Silva, A. R. Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
 
-Ferreira da Silva, A. R., Facing the Challenge of Estimating Human Brain White Matter Pathways. In \emph{Proc. of the 4th International Joint Conference on Computational Intelligence} (Oct. 2012), K. Madani, J. Kacprzyk, and J. Filipe, Eds., SciTePress, pp. 709-714.
-
-Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2014. R package version 0.2-0.
-
-Granert, Oliver , \pkg{Rniftilib}: Rniftilib - R Interface to NIFTICLIB (V2.0.0: 2010-07-20), 2013, R package version 0.0-32.
+Hornik, K., and Gruen, B. \pkg{movMF}: Mixtures of von Mises-Fisher Distributions, 2012. R package version 0.1-0.
 
 Hankin, R. K. S. Special functions in R: introducing the \pkg{gsl} package. R News 6 (October 2006).
 
@@ -59,6 +55,8 @@ Auguie, B. \pkg{gridExtra}: functions in Grid graphics, 2012. R package version 
 Barber, C. B., Habel, K., Grasman, R., Gramacy, R. B., Stahel, A., and Sterratt, D. C. \pkg{geometry}: Mesh generation and surface tesselation, 2012. R package version 0.3-2.
 
 R Core Team. \pkg{R}: A Language and Environment for Statistical Computing.  R Foundation for Statistical Computing, Vienna, Austria, 2012. ISBN 3-900051-07-0.
+
+Whitcher, B., Schmid, V. J., and Thornton, A. Working with the DICOM and NIfTI data standards in R. \emph{Journal of Statistical Software} 44, 6 (2011), 1-28.
 
 Jenkinson, M., Beckmann, C. F., Behrens, T. E., Woolrich, M. W., and Smith, S. M. FSL. \emph{NeuroImage} 62, 2 (2012), 782-790.
 

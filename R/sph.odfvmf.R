@@ -34,23 +34,24 @@ function(run=TRUE, fbase=NULL, savedir=tempdir(), rg=NULL, swap=FALSE, btoption=
   b0 <- which(btable[,1] == 0)
   odfvertices <- matrix(btable[-b0,2:4], ncol=3)
   tc <-  geometry::delaunayn(odfvertices)
-  tcsurf <- t( geometry::surf.tri(odfvertices,tc))  
+  tcsurf <- t( surf.tri(odfvertices,tc))  
   ##----------------------------
   gc()
-  cat("Reading data ...\n")
+  cat("Reading data ...")
   ptm <- proc.time()
-  niifile  <- readniidata(fbase=fbase, filename="data.nii.gz")
-  volimg <- nifti.image.read(niifile)
-  niimask <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
-  volmask <- nifti.image.read(niimask)
+  img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
+  volimg <- img.nifti@.Data  
+  mask.nifti <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
+  volmask <- mask.nifti@.Data  
   print(proc.time() - ptm)
+  rm(img.nifti, mask.nifti)
   gc()
-  d <- dim(volimg)
-  dm <- dim(volmask)
-  volgfa <- array(0, dim=dm)   ## gfas map
-  V1 <- array(0, dim=c(dm, 3)) ## V1 direction
-  V2 <- array(0, dim=c(dm, 3)) ## V2 direction
-  V3 <- array(0, dim=c(dm, 3)) ## V3 direction
+  ##----------------------------
+  d <- dim(volmask)
+  volgfa <- array(0, dim=d)   ## gfas map
+  V1 <- array(0, dim=c(d, 3)) ## V1 direction
+  V2 <- array(0, dim=c(d, 3)) ## V2 direction
+  V3 <- array(0, dim=c(d, 3)) ## V3 direction
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
@@ -59,6 +60,7 @@ function(run=TRUE, fbase=NULL, savedir=tempdir(), rg=NULL, swap=FALSE, btoption=
     first <- 1; last <- nslices
   }
   else { first <- rg[1]; last <- rg[2] }
+  cat("\n")
   ##-----------------------------
   ## SPH process preparation
   gradient <- t(odfvertices)
@@ -273,35 +275,25 @@ function(run=TRUE, fbase=NULL, savedir=tempdir(), rg=NULL, swap=FALSE, btoption=
     }
     print(proc.time() - ptm)
   }
-  ##  store as nifti
-  f <- "data_gfa"
-  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(volgfa))
-  niivol[] <- volgfa[]
-  nifti.image.write(niivol)
-  cat("wrote",file.path(savedir,f),"\n")
-  f <- "data_V1"
-  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V1))
-  niivol[] <- V1[]
-  nifti.image.write(niivol)
-  cat("wrote",file.path(savedir,f),"\n")
-  f <- "data_V2"
-  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V2))
-  niivol[] <- V2[]
-  nifti.image.write(niivol)
-  cat("wrote",file.path(savedir,f),"\n")
-  f <- "data_V3"
-  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V3))
-  niivol[] <- V3[]
-  nifti.image.write(niivol)
-  cat("wrote",file.path(savedir,f),"\n")
-  # V123 <- array(0, dim=c(dm, 9)) ## V1 direction
-  # V123[,,,1:3] <- V1
-  # V123[,,,4:6] <- V2
-  # V123[,,,7:9] <- V3
-  # f <- "data_V123"
-  # niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V123))
-  # niivol[] <- V123[]
-  # nifti.image.write(niivol)
-  # cat("wrote",file.path(savedir,f),"\n")
+  f <- paste(savedir,"/data_gfa",sep="")
+  writeNIfTI(volgfa, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V1",sep="")
+  writeNIfTI(V1, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V2",sep="")
+  writeNIfTI(V2, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V3",sep="")
+  writeNIfTI(V3, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  ##
+  V123 <- array(0, dim=c(d, 9)) ## V1 direction
+	V123[,,,1:3] <- V1
+	V123[,,,4:6] <- V2
+	V123[,,,7:9] <- V3
+  f <- paste(savedir,"/data_V123",sep="")
+  writeNIfTI(V123, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
 }
 

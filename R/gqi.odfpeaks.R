@@ -1,3 +1,6 @@
+## GQI volume processing
+## fslview-compatible gfa-map and V1 volumes 
+
 gqi.odfpeaks <-
 function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, showglyph=FALSE, bview="coronal", savedir=tempdir(), aniso=NULL)
 {
@@ -29,29 +32,30 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
     }
     else stop()
   }
-  ##----------------------------
+  ##--------------------
   gc()
   cat("Reading data ...\n")
   ptm <- proc.time()
-  niifile  <- readniidata(fbase=fbase, filename="data.nii.gz")
-  volimg <- nifti.image.read(niifile)
-  niimask <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
-  volmask <- nifti.image.read(niimask)
+  img.nifti  <- readniidata(fbase=fbase, filename="data.nii.gz")
+  volimg <- img.nifti@.Data  
+  mask.nifti <- readniidata(fbase=fbase, filename="data_brain_mask.nii.gz")
+  volmask <- mask.nifti@.Data  
   print(proc.time() - ptm)
+  rm(img.nifti, mask.nifti)
   gc()
-  d <- dim(volimg)
-  dm <- dim(volmask)
-  volgfa <- array(0, dim=dm)   ## gfas map
-  V1 <- array(0, dim=c(dm, 3)) ## V1 direction
-  # V2 <- array(0, dim=c(dm, 3)) ## V2 direction
+  ##--------------------
+  d <- dim(volmask)
+  volgfa <- array(0, dim=d)   ## gfas map
+  V1 <- array(0, dim=c(d, 3)) ## V1 direction
   if(is.null(rg)) {
     switch(kv,
       { nslices <- d[1]}, # sagittal,
       { nslices <- d[2]}, # coronal
-      { nslices <- d[3]})  # axial
+      { nslices <- d[3]}) # axial
     first <- 1; last <- nslices
   }
   else { first <- rg[1]; last <- rg[2] }
+  cat("\n")
   ##-----------------------------
   ## "gdimethod" process
   cat("Estimating slice odfs ...\n")
@@ -154,18 +158,14 @@ function(gdi="gqi", fbase=NULL, rg=NULL, swap=FALSE, lambda=NULL, depth=3, btopt
       mx[z2d] <- gfas
       volgfa[,,sl] <- mx } ) # axial
   }
+  print(proc.time() - ptm)
   cat("\n")
   ##-----------------------------
-  ##  store nifti
-  f <- "data_gfa"
-  niigfa <- niisetup(savedir=savedir, filename=f, dim=dim(volgfa))
-  niigfa[] <- volgfa[]
-  nifti.image.write(niigfa)
-  cat("wrote",file.path(savedir,f),"\n")
-  f <- "data_V1"
-  niiV1 <- niisetup(savedir=savedir, filename=f, dim=dim(V1))
-  niiV1[] <- V1[]
-  nifti.image.write(niiV1)
-  cat("wrote",file.path(savedir,f),"\n")
+  f <- paste(savedir,"/data_gfa",sep="")
+  writeNIfTI(volgfa, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V1",sep="")
+  writeNIfTI(V1, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
 }
 

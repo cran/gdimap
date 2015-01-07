@@ -12,12 +12,13 @@ Statistical orientation estimation in \code{sph.odfvmf} is based on von Mises-Fi
 }
 
 \usage{
-sph.odfvmflines(fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE,
+sph.odfvmflines(run=TRUE, fbase=NULL, savedir=tempdir(), roi=NULL,  rg=c(1,1), swap=FALSE,
  btoption=2, threshold=0.4, kdir=4, zfactor=5, showglyph=FALSE, showimage="linesgfa",
  bview="coronal", bg="white", order=4, texture=NULL, clusterthr=0.6, aniso=NULL, ...)
 }
 
 \arguments{
+\item{run}{ logical variable enabling loading previously processed data (default: \code{TRUE}). } 
 \item{fbase}{ Directory where the required input data files are located. } 
 \item{roi}{ Region of Interest (ROI) to use as mask; default mask (\code{roi=NULL}) uses an all brain mask for the supplied data set. }
 \item{rg}{ range of slices to process (default option \code{rg=c(1,1)}); \code{rg=NULL} processes all slices. }
@@ -32,6 +33,7 @@ sph.odfvmflines(fbase=NULL, roi=NULL,  rg=c(1,1), swap=FALSE,
   \code{c("none", "gfa", "lines", "linesgfa", "linesrgbmap", "linesdata")} \cr
  (see Details). }
 \item{bview}{ MRI slice view selection in \{\code{axial, coronal, sagittal}\} (default: \code{"coronal"}). }
+\item{savedir}{ directory for saving/loading processed results (default: \code{tempdir()}. }
 \item{bg}{ map background colour (default \code{"white"}) }
 \item{order}{ parameter associated with the order of the spherical harmonics approximation (default: 4). }
 \item{texture}{ name of the PNG file to be used as RGB map overlay in some 'showimage' options (default \code{NULL} - no texture). }
@@ -101,25 +103,25 @@ Tabelow K., Polzehl J.: \pkg{dti}: DTI/DWI Analysis, 2012. R package version 1.1
   ##-------------
   ## von Mises-Fisher fibre orientation mapping
   ## for a range of slices
-  sph.odfvmflines(rg=c(1,1), showimage="linesdata",
+  sph.odfvmflines(run=TRUE, rg=c(1,1), showimage="linesdata",
     threshold=0.5)
   ## display line-maps only
-  sph.odfvmflines(showimage="lines")
+  sph.odfvmflines(run=FALSE, showimage="lines")
   ## using GFA overlay
-  sph.odfvmflines(showimage="linesgfa")
+  sph.odfvmflines(run=FALSE, showimage="linesgfa")
   ##-------------
   ## Show reconstructed glyphs in ODF processing 
   ## for principal direction determination
-  sph.odfvmflines(showimage="linesdata",
+  sph.odfvmflines(run=TRUE, showimage="linesdata",
     showglyph=TRUE, threshold=0.5)
   ##-------------
   ## using a ROI overlay
-  sph.odfvmflines(roi="slfcst.nii.gz")
+  sph.odfvmflines(run=TRUE, roi="slfcst.nii.gz")
   ##-------------
   ## speeded up approximations: hardmax and common/numeric kappa
-  sph.odfvmflines(rg=c(1,1), showimage="linesdata",
+  sph.odfvmflines(run=TRUE, rg=c(1,1), showimage="linesdata",
     E="hardmax", kappa=list(common = TRUE))
-  sph.odfvmflines(rg=c(1,1), showimage="linesdata",
+  sph.odfvmflines(run=TRUE, rg=c(1,1), showimage="linesdata",
     E="hardmax", kappa=20)
 }
 }

@@ -10,7 +10,7 @@
 }
 
 \usage{
-gqi.odfpeaklines(gdi="gqi", fbase=NULL, roi=NULL, rg=c(1,1),
+gqi.odfpeaklines(gdi="gqi", run=TRUE, fbase=NULL, roi=NULL, rg=c(1,1),
  swap=FALSE, lambda=NULL, depth=3, btoption=2, threshold=0.4, kdir=2,
  zfactor=5, showglyph=FALSE, showimage="linesgfa", bview="coronal",
  savedir=tempdir(), bg="white", texture=NULL, aniso=NULL, ...)
@@ -18,12 +18,13 @@ gqi.odfpeaklines(gdi="gqi", fbase=NULL, roi=NULL, rg=c(1,1),
 
 \arguments{
 \item{gdi}{ method of ODF reconstruction to use \code{c("gqi", "gqi2")} (default: \code{"gqi"}). }
+\item{run}{ logical variable enabling loading previously processed data (default: \code{TRUE}). } 
 \item{fbase}{ Directory where the required input data files are located. } 
 \item{roi}{ Region of Interest (ROI) to use as mask; default mask (\code{roi=NULL}) uses an all brain mask for the supplied data set. }
 \item{rg}{ range of slices to process (default option \code{rg=c(1,1)}); \code{rg=NULL} processes all slices. }
 \item{swap}{ toggle radiological/neurological orientation  (default: \code{FALSE}). }
 \item{lambda}{ diffusion sampling length in \code{gdi="gqi"} and \code{gdi="gqi2"}.
- By default the following default values are used when \code{lambda=NULL} is specified: 1.25 in "gqi", 3 in "gqi2". }
+ By default the following default values are used when \code{lambda=NULL} is specified: 1.24 in "gqi", 3 in "gqi2". }
 \item{depth}{ sampling density on the hemisphere used in simulation (default N=321; depth=3). }
 \item{btoption}{ b-table selection between \file{btable.txt} (\code{btoption=1}), and the 3D-DSI grid b-table
   extracted from the diffusion data set (\file{data.bvec} and \file{data.bval}). By default, the 3D-DSI grid b-table is used (\code{btoption=2}). }
@@ -112,17 +113,17 @@ Garyfallidis E., Towards an Accurate Brain Tractography, 2012, PhD Thesis, Unive
 \dontrun{
   ##-------------
   ## Line map using ODF peak detection 
-  gqi.odfpeaklines(showimage="lines")
+  gqi.odfpeaklines(run=TRUE, showimage="lines")
   ## idem with "gqi2"
-  gqi.odfpeaklines(gdi="gqi2", showimage="lines")
+  gqi.odfpeaklines(gdi="gqi2", run=TRUE, showimage="lines")
   ## display line-map overlayed on GFA map 
-  gqi.odfpeaklines(showimage="linesgfa")
+  gqi.odfpeaklines(run=FALSE, showimage="linesgfa")
   ##-------------
   ## generate slice texture first from default data file
   texturefname <- file.path(tempdir(),"rgbmap.png")
   rgbvolmap(texture=texturefname, bg="transparent")
   ## Line map with RGB map overlay
-  gqi.odfpeaklines(showimage="linesrgbmap",
+  gqi.odfpeaklines(run=TRUE, showimage="linesrgbmap",
     texture=texturefname)
   ##-------------
   ## Show examples of reconstructed glyphs in ODF processing 

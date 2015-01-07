@@ -5,10 +5,10 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
   bviews <- c("sagittal", "coronal", "axial")
   kv <- grep(bview, bviews)
   ##----------------------------
-  niifile  <- readniidata(fbase=fbase, filename="data_gfa.nii.gz")
-  gfavol <- nifti.image.read(niifile)
-  niifile  <- readniidata(fbase=fbase, filename="data_V1.nii.gz")
-  V1 <- nifti.image.read(niifile)
+  img.nifti  <- readniidata(fbase=fbase, filename="data_gfa.nii.gz")
+  gfavol <- img.nifti@.Data
+  v1.nifti  <- readniidata(fbase=fbase, filename="data_V1.nii.gz")
+  V1 <- v1.nifti@.Data
   ##----------------------------
   d <- dim(gfavol)
   switch(kv,
@@ -80,7 +80,7 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
       ww <- w*1/nn; hh <- h*mm[1]/(mm[2] * nn)
     }
     r1 <- grid::rasterGrob(zpr2, interpolate=TRUE, width=ww,
-                                 height=hh, default.units="inches")
+															 	height=hh, default.units="inches")
     displist[j] <- list(r1)
   }
   cat("\n")
@@ -91,7 +91,7 @@ function(fbase=NULL, rg=c(1,1), bview="coronal",
     savePlot(texture)
     cat("saved",texture,"\n")
     Sys.sleep(0.25)
-    dev.off()
+		dev.off()
   }
   else 
     do.call(gridExtra::grid.arrange,  displist) 

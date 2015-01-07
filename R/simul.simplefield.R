@@ -156,7 +156,7 @@ function(pc0, field, odfsdata)
   odfs.reg <- t(apply(odfsdata, 1 , norm01))
   gfas <- apply(odfs.reg, 1, genfa)
   tc <-  geometry::delaunayn(pc0)
-  tc.surf <- t( geometry::surf.tri(pc0,tc) )
+  tc.surf <- t( surf.tri(pc0,tc) )
   dt2 <- dim(pc0[tc.surf,])[1]
   d1 <- dim(odfsdata)[1]
   sgrid <- matrix(0, nrow=d1*dt2, ncol=3)
@@ -216,7 +216,7 @@ function(pc0, field, odfsdata, showglyph=FALSE, clusterthr=0.6, savedir=tempdir(
   odfs.reg <- t(apply(odfsdata, 1 , norm01))
   gfas <- apply(odfs.reg, 1, genfa)
   tc <-  geometry::delaunayn(pc0)
-  tc.surf <- t( geometry::surf.tri(pc0,tc) )
+  tc.surf <- t( surf.tri(pc0,tc) )
   ## ------------
   d1 <- dim(odfsdata)[1]
   nn <- 8*d1
@@ -315,28 +315,23 @@ function(pc0, field, odfsdata, showglyph=FALSE, clusterthr=0.6, savedir=tempdir(
     }
   }
   cat("\n")
+  f <- paste(savedir,"/data_gfa",sep="")
+  writeNIfTI(volgfa, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V1",sep="")
+  writeNIfTI(V1, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  f <- paste(savedir,"/data_V2",sep="")
+  writeNIfTI(V2, filename=f, verbose=TRUE)
+  cat("wrote",f,"\n")
+  ##--
   open3d()
   cat("plotting ... \n")
   segments3d(v[1:(q-1),], col=ck[1:(q-1)], lwd=2, alpha=1)
   rgl.viewpoint(0,0)
   rgl.bringtotop()
-	##----------------
-  ##  store as nifti
-  f <- "data_gfa"
-  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(volgfa))
-  niivol[] <- volgfa[]
-  nifti.image.write(niivol)
-  cat("wrote",file.path(savedir,f),"\n")
-  f <- "data_V1"
-  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V1))
-  niivol[] <- V1[]
-  nifti.image.write(niivol)
-  cat("wrote",file.path(savedir,f),"\n")
-  f <- "data_V2"
-  niivol <- niisetup(savedir=savedir, filename=f, dim=dim(V2))
-  niivol[] <- V2[]
-  nifti.image.write(niivol)
-  cat("wrote",file.path(savedir,f),"\n")
+
+  ## 
 }
 
 ##--------------------------
